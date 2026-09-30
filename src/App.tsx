@@ -1,15 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Navbar } from './components/Navbar';
 import { FilterControls } from './components/FilterControls';
-import { SpinReelAnimation } from './components/SpinReelAnimation';
+import { CasinoSlotMachine } from './components/SlotMachine/CasinoSlotMachine';
 import { ResultCard } from './components/ResultCard';
 import { HistoryDrawer } from './components/HistoryDrawer';
-import { FilterState, Movie, FoodOption, Restaurant, SavedPairing } from './types';
+import { FilterState, Movie, FoodOption, Restaurant, SavedPairing, MovieGenre, FoodGenre, RuntimeCategory } from './types';
 import { MOCK_MOVIES } from './data/mockMovies';
 import { MOCK_FOODS, getThematicTieIn } from './data/mockFoods';
 import { getNearbyRestaurants } from './data/mockRestaurants';
-import { playSuccessSound } from './utils/sound';
-import { Compass, AlertCircle } from 'lucide-react';
+import { Compass, SlidersHorizontal, ChevronDown, ChevronUp } from 'lucide-react';
 
 const STORAGE_KEY_SAVED = 'movie_munchies_saved_pairings_v1';
 const STORAGE_KEY_SOUND = 'movie_munchies_sound_enabled';
@@ -28,9 +27,8 @@ export function App() {
   const [currentFood, setCurrentFood] = useState<FoodOption | null>(null);
   const [thematicTieIn, setThematicTieIn] = useState<string>('');
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
-  const [isSpinning, setIsSpinning] = useState<boolean>(false);
   const [isLocked, setIsLocked] = useState<boolean>(false);
-  const [filterFallbackNotice, setFilterFallbackNotice] = useState<string | null>(null);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState<boolean>(false);
 
   // Sound preference state
   const [soundEnabled, setSoundEnabled] = useState<boolean>(() => {
@@ -76,114 +74,62 @@ export function App() {
     });
   };
 
-  // Helper to pick a movie matching current filters
-  const pickMovie = useCallback((excludeId?: string): { movie: Movie; fallback: boolean } => {
+  // Helper to pick a movie matching filters
+  const pickMovie = useCallback((genre?: MovieGenre, runtime?: RuntimeCategory, excludeId?: string): Movie => {
     let pool = MOCK_MOVIES.filter((m) => {
-      if (excludeId && m.id === excludeId && MOCK_MOVIES.length > 1) {
-        return false;
-      }
-
-      // Check runtime slider
-      if (m.runtime > filters.maxRuntimeSlider) return false;
-
-      // Check runtime category if specific
-      if (filters.runtime !== 'any' && m.runtimeCategory !== filters.runtime) {
-        return false;
-      }
-
-      // Check genres
-      if (filters.selectedGenres.length > 0) {
-        const hasGenre = m.genres.some((g) => filters.selectedGenres.includes(g));
-        if (!hasGenre) return false;
-      }
-
+      if (excludeId && m.id === excludeId && MOCK_MOVIES.length > 1) return false;
+      if (genre && !m.genres.includes(genre)) return false;
+      if (runtime && runtime !== 'any' && m.runtimeCategory !== runtime) return false;
       return true;
     });
 
-    let fallback = false;
-    // Fallback if filters are too restrictive
-    if (pool.length === 0) {
-      fallback = true;
-      pool = MOCK_MOVIES.filter((m) => m.id !== excludeId);
-      if (pool.length === 0) pool = MOCK_MOVIES;
+    if (pool.length === 0 && genre) {
+      pool = MOCK_MOVIES.filter((m) => m.genres.includes(genre));
     }
+    if (pool.length === 0) pool = MOCK_MOVIES;
 
     const randomIndex = Math.floor(Math.random() * pool.length);
-    return { movie: pool[randomIndex], fallback };
-  }, [filters]);
+    return pool[randomIndex];
+  }, []);
 
-  // Helper to pick a food option
-  const pickFood = useCallback((movie: Movie, excludeId?: string): FoodOption => {
-    if (filters.selectedFoodGenre !== 'all') {
-      const specific = MOCK_FOODS.find((f) => f.genre === filters.selectedFoodGenre);
-      if (specific) return specific;
-    }
+  // When Slot Machine finishes spinning all 3 category reels
+  const handleSlotSpinComplete = ({
+    genre,
+    runtime,
+    foodGenre,
+  }: {
+    genre: MovieGenre;
+    runtime: RuntimeCategory;
+    foodGenre: FoodGenre;
+  }) => {
+    const movie = pickMovie(genre, runtime, currentMovie?.id);
+    const food = MOCK_FOODS.find((f) => f.genre === foodGenre) || MOCK_FOODS[0];
+    const tieIn = getThematicTieIn(food, movie.genres);
+    const spots = getNearbyRestaurants(food.genre, filters.location);
 
-    let foodPool = MOCK_FOODS.filter((f) => !excludeId || f.id !== excludeId);
-    if (foodPool.length === 0) foodPool = MOCK_FOODS;
-
-    // Favor recommended food vibes for the movie if available
-    if (movie.recommendedFoodVibes && movie.recommendedFoodVibes.length > 0) {
-      const recommendedFoods = foodPool.filter((f) =>
-        movie.recommendedFoodVibes?.includes(f.genre)
-      );
-      if (recommendedFoods.length > 0 && Math.random() > 0.3) {
-        return recommendedFoods[Math.floor(Math.random() * recommendedFoods.length)];
-      }
-    }
-
-    return foodPool[Math.floor(Math.random() * foodPool.length)];
-  }, [filters.selectedFoodGenre]);
-
-  // Execute full randomizer spin
-  const handleSpinTheNight = () => {
-    if (isSpinning) return;
-    setIsSpinning(true);
+    setCurrentMovie(movie);
+    setCurrentFood(food);
+    setThematicTieIn(tieIn);
+    setRestaurants(spots);
     setIsLocked(false);
-    setFilterFallbackNotice(null);
-
-    // Duration of slot reel shuffle
-    setTimeout(() => {
-      const { movie, fallback } = pickMovie();
-      const food = pickFood(movie);
-      const tieIn = getThematicTieIn(food, movie.genres);
-      const spots = getNearbyRestaurants(food.genre, filters.location);
-
-      setCurrentMovie(movie);
-      setCurrentFood(food);
-      setThematicTieIn(tieIn);
-      setRestaurants(spots);
-      setIsSpinning(false);
-
-      if (fallback) {
-        setFilterFallbackNotice('We expanded your filters slightly so you never go empty-handed!');
-      } else {
-        setFilterFallbackNotice(null);
-      }
-
-      playSuccessSound(soundEnabled);
-    }, 1100);
   };
 
   // Respin only the movie
   const handleRespinMovie = () => {
     if (!currentMovie || !currentFood) return;
-    const { movie, fallback } = pickMovie(currentMovie.id);
+    const movie = pickMovie(undefined, undefined, currentMovie.id);
     const tieIn = getThematicTieIn(currentFood, movie.genres);
 
     setCurrentMovie(movie);
     setThematicTieIn(tieIn);
     setIsLocked(false);
-
-    if (fallback) {
-      setFilterFallbackNotice('Filters broadened to find another film!');
-    }
   };
 
   // Respin only the food
   const handleRespinFood = () => {
     if (!currentMovie || !currentFood) return;
-    const food = pickFood(currentMovie, currentFood.id);
+    const availableFoods = MOCK_FOODS.filter((f) => f.id !== currentFood.id);
+    const food = availableFoods[Math.floor(Math.random() * availableFoods.length)] || MOCK_FOODS[0];
     const tieIn = getThematicTieIn(food, currentMovie.genres);
     const spots = getNearbyRestaurants(food.genre, filters.location);
 
@@ -218,7 +164,6 @@ export function App() {
     setThematicTieIn(pairing.thematicTieIn);
     setRestaurants(pairing.restaurants || getNearbyRestaurants(pairing.food.genre, pairing.location));
     setIsLocked(true);
-    setFilterFallbackNotice(null);
   };
 
   const handleDeleteSaved = (id: string) => {
@@ -237,8 +182,8 @@ export function App() {
 
   // On initial mount, spin a great starting pair
   useEffect(() => {
-    const { movie } = pickMovie();
-    const food = pickFood(movie);
+    const movie = pickMovie('Sci-Fi', 'epic');
+    const food = MOCK_FOODS.find((f) => f.genre === 'Sushi') || MOCK_FOODS[0];
     const tieIn = getThematicTieIn(food, movie.genres);
     const spots = getNearbyRestaurants(food.genre, INITIAL_FILTERS.location);
 
@@ -246,7 +191,7 @@ export function App() {
     setCurrentFood(food);
     setThematicTieIn(tieIn);
     setRestaurants(spots);
-  }, []);
+  }, [pickMovie]);
 
   // Update restaurants when location input changes
   useEffect(() => {
@@ -270,63 +215,75 @@ export function App() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 relative z-10">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 relative z-10">
         
         {/* Hero Tagline */}
-        <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-12">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cinema-gold/10 border border-cinema-gold/30 text-cinema-gold text-xs font-bold uppercase tracking-wider mb-4 shadow-glow-gold/20">
+        <div className="text-center max-w-3xl mx-auto mb-6 sm:mb-8">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cinema-gold/10 border border-cinema-gold/30 text-cinema-gold text-xs font-bold uppercase tracking-wider mb-3 shadow-glow-gold/20">
             <Compass className="w-3.5 h-3.5" />
-            The Ultimate Antidote to Decision Fatigue
+            Vegas Casino Cinema Randomizer
           </div>
           <h1 className="font-display text-4xl sm:text-6xl font-black text-white tracking-tight leading-[1.1]">
-            One Spin.{' '}
-            <span className="bg-gradient-to-r from-cinema-gold via-amber-400 to-cinema-crimson bg-clip-text text-transparent">
-              One Epic Film.
+            Pull The Lever.{' '}
+            <span className="bg-gradient-to-r from-yellow-300 via-amber-400 to-amber-600 bg-clip-text text-transparent">
+              Hit The Jackpot.
             </span>{' '}
-            The Perfect Feast.
+            Feast Tonight.
           </h1>
-          <p className="mt-4 text-slate-400 text-sm sm:text-base max-w-xl mx-auto">
-            Stop endlessly scrolling catalogs while dinner gets cold. Let the Oracle pair a cinema masterpiece with local delivery munchies.
+          <p className="mt-3 text-slate-400 text-sm sm:text-base max-w-xl mx-auto">
+            Drag the mechanical arm or press spin to roll your Film Genre, Runtime Pace, and Delivery Munchies!
           </p>
         </div>
 
-        {/* Filter Controls Panel */}
-        <FilterControls
-          filters={filters}
-          onFilterChange={setFilters}
-          onResetFilters={handleResetFilters}
-        />
-
-        {/* The Randomizer Engine Button & Reel */}
-        <SpinReelAnimation
-          isSpinning={isSpinning}
-          onSpin={handleSpinTheNight}
+        {/* THE VEGAS CASINO SLOT MACHINE */}
+        <CasinoSlotMachine
+          onSpinComplete={handleSlotSpinComplete}
+          activeMovie={currentMovie}
+          activeFood={currentFood}
           soundEnabled={soundEnabled}
         />
 
-        {/* Subtle notice if fallback occurred */}
-        {filterFallbackNotice && (
-          <div className="max-w-xl mx-auto mb-6 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-center justify-center gap-2 text-center animate-fade-in">
-            <AlertCircle className="w-4 h-4 flex-shrink-0" />
-            <span>{filterFallbackNotice}</span>
+        {/* Advanced Filters Drawer / Toggle */}
+        <div className="max-w-2xl mx-auto my-6 text-center">
+          <button
+            type="button"
+            onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+            className="inline-flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-xl border border-white/10 bg-cinema-900/60 hover:bg-cinema-800 text-slate-300 hover:text-white transition-all shadow-sm"
+          >
+            <SlidersHorizontal className="w-3.5 h-3.5 text-cinema-gold" />
+            <span>{showAdvancedFilters ? 'Hide Location & Preferences' : 'Customize Location & Preferences'}</span>
+            {showAdvancedFilters ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+          </button>
+        </div>
+
+        {/* Collapsible Filter Controls Panel */}
+        {showAdvancedFilters && (
+          <div className="mb-10 transition-all duration-300">
+            <FilterControls
+              filters={filters}
+              onFilterChange={setFilters}
+              onResetFilters={handleResetFilters}
+            />
           </div>
         )}
 
         {/* Result Card Display */}
         {currentMovie && currentFood && (
-          <ResultCard
-            movie={currentMovie}
-            food={currentFood}
-            thematicTieIn={thematicTieIn}
-            restaurants={restaurants}
-            location={filters.location}
-            isLocked={isLocked}
-            onLockIn={handleLockIn}
-            onRespinMovie={handleRespinMovie}
-            onRespinFood={handleRespinFood}
-            onRespinBoth={handleSpinTheNight}
-            soundEnabled={soundEnabled}
-          />
+          <div className="mt-8">
+            <ResultCard
+              movie={currentMovie}
+              food={currentFood}
+              thematicTieIn={thematicTieIn}
+              restaurants={restaurants}
+              location={filters.location}
+              isLocked={isLocked}
+              onLockIn={handleLockIn}
+              onRespinMovie={handleRespinMovie}
+              onRespinFood={handleRespinFood}
+              onRespinBoth={handleRespinMovie}
+              soundEnabled={soundEnabled}
+            />
+          </div>
         )}
       </main>
 
@@ -334,12 +291,12 @@ export function App() {
       <footer className="w-full border-t border-white/5 py-8 mt-16 bg-cinema-950/60 backdrop-blur-sm text-center text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className="text-base">🍿</span>
+            <span className="text-base">🎰</span>
             <span className="font-bold text-slate-400">The Movie & Munchies Oracle</span>
-            <span>• Built for movie lovers & hungry cinephiles</span>
+            <span>• Vegas Casino Edition</span>
           </div>
           <div>
-            Powered by React, Tailwind CSS & Thematic Cinema Curation
+            Powered by React, Tailwind CSS & High-Stakes Cinema Curation
           </div>
         </div>
       </footer>
