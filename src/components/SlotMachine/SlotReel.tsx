@@ -7,6 +7,7 @@ export interface ReelItem {
   title: string;
   subtitle?: string;
   emoji?: string;
+  imageUrl?: string;
   badge?: string;
   color?: string;
 }
@@ -57,7 +58,6 @@ export const SlotReel: React.FC<SlotReelProps> = ({
   // Deceleration / Slow-Down Phase (Suspenseful step-by-step crawl to winning item)
   useEffect(() => {
     if (isDecelerating && !isSpinning) {
-      // Step through a few items progressively slowing down before landing
       let currentStep = 0;
       const totalSteps = 4;
       const delays = [110, 180, 280, 420];
@@ -69,7 +69,6 @@ export const SlotReel: React.FC<SlotReelProps> = ({
           currentStep++;
           setTimeout(stepCrawl, delays[currentStep] || 300);
         } else {
-          // Final landing on the winning item
           setDisplayIndex(selectedIndex);
           playReelClunk(soundEnabled);
         }
@@ -101,7 +100,7 @@ export const SlotReel: React.FC<SlotReelProps> = ({
       </div>
 
       {/* 3D Cylindrical Reel Window */}
-      <div className={`relative w-full h-[185px] sm:h-[215px] rounded-xl overflow-hidden bg-gradient-to-b from-stone-900 via-stone-950 to-stone-900 border-2 transition-all ${
+      <div className={`relative w-full h-[190px] sm:h-[220px] rounded-xl overflow-hidden bg-gradient-to-b from-stone-900 via-stone-950 to-stone-900 border-2 transition-all ${
         !isSpinning && !isDecelerating
           ? 'border-amber-400 shadow-[inset_0_4px_16px_rgba(0,0,0,0.9),0_0_20px_rgba(245,158,11,0.3)]'
           : 'border-amber-500/40 shadow-[inset_0_4px_16px_rgba(0,0,0,0.9)]'
@@ -115,7 +114,7 @@ export const SlotReel: React.FC<SlotReelProps> = ({
         <div className="absolute inset-x-0 top-[38%] h-12 bg-gradient-to-b from-white/10 via-white/5 to-transparent z-20 pointer-events-none" />
 
         {/* Central Payline Marker */}
-        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[68px] sm:h-[78px] border-y border-amber-400/50 bg-amber-500/[0.04] z-10 pointer-events-none flex items-center justify-between px-1">
+        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[74px] sm:h-[84px] border-y border-amber-400/50 bg-amber-500/[0.04] z-10 pointer-events-none flex items-center justify-between px-1">
           <span className="w-1.5 h-3.5 bg-red-500 rounded-r shadow-[0_0_8px_#ef4444]" />
           <span className="w-1.5 h-3.5 bg-red-500 rounded-l shadow-[0_0_8px_#ef4444]" />
         </div>
@@ -124,38 +123,56 @@ export const SlotReel: React.FC<SlotReelProps> = ({
         <div className={`w-full h-full flex flex-col justify-between py-2 transition-all ${isSpinning ? 'blur-[0.8px]' : ''}`}>
           
           {/* Top Ghost Item (Cylinder Curve) */}
-          <div className="h-12 flex flex-col items-center justify-center opacity-30 scale-90 select-none pointer-events-none transform -translate-y-1">
-            <span className="text-base">{prevItem.emoji}</span>
-            <span className="text-[10px] font-semibold text-stone-400 truncate max-w-[90%]">
+          <div className="h-12 flex flex-col items-center justify-center opacity-30 scale-85 select-none pointer-events-none transform -translate-y-1">
+            {prevItem.imageUrl ? (
+              <img src={prevItem.imageUrl} alt="" className="w-6 h-6 rounded object-cover mb-0.5" />
+            ) : (
+              <span className="text-sm">{prevItem.emoji}</span>
+            )}
+            <span className="text-[9px] font-semibold text-stone-400 truncate max-w-[90%]">
               {prevItem.title}
             </span>
           </div>
 
           {/* Winning Center Item (Payline) */}
           <div
-            className={`h-[68px] sm:h-[78px] flex flex-col items-center justify-center text-center px-2 select-none transition-transform duration-200 z-10 ${
+            className={`h-[74px] sm:h-[84px] flex flex-col items-center justify-center text-center px-1 select-none transition-transform duration-200 z-10 ${
               !isSpinning && !isDecelerating ? 'scale-105' : 'scale-100'
             }`}
           >
-            {currentItem.emoji && (
+            {currentItem.imageUrl ? (
+              <div className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-lg overflow-hidden border border-amber-400/70 shadow-[0_3px_10px_rgba(0,0,0,0.8)] mb-1 flex-shrink-0 bg-stone-900">
+                <img
+                  src={currentItem.imageUrl}
+                  alt={currentItem.title}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+              </div>
+            ) : currentItem.emoji ? (
               <span className={`text-2xl sm:text-3xl leading-none mb-1 filter drop-shadow-md ${isSpinning ? 'animate-bounce' : ''}`}>
                 {currentItem.emoji}
               </span>
-            )}
-            <span className="font-display font-black text-xs sm:text-sm text-amber-100 tracking-tight leading-tight line-clamp-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+            ) : null}
+
+            <span className="font-display font-black text-xs sm:text-sm text-amber-100 tracking-tight leading-tight line-clamp-1 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
               {currentItem.title}
             </span>
             {currentItem.subtitle && (
-              <span className="text-[10px] font-mono text-amber-400/90 mt-0.5 font-bold">
+              <span className="text-[9px] sm:text-[10px] font-mono text-amber-400/90 font-bold leading-none mt-0.5">
                 {currentItem.subtitle}
               </span>
             )}
           </div>
 
           {/* Bottom Ghost Item (Cylinder Curve) */}
-          <div className="h-12 flex flex-col items-center justify-center opacity-30 scale-90 select-none pointer-events-none transform translate-y-1">
-            <span className="text-base">{nextItem.emoji}</span>
-            <span className="text-[10px] font-semibold text-stone-400 truncate max-w-[90%]">
+          <div className="h-12 flex flex-col items-center justify-center opacity-30 scale-85 select-none pointer-events-none transform translate-y-1">
+            {nextItem.imageUrl ? (
+              <img src={nextItem.imageUrl} alt="" className="w-6 h-6 rounded object-cover mb-0.5" />
+            ) : (
+              <span className="text-sm">{nextItem.emoji}</span>
+            )}
+            <span className="text-[9px] font-semibold text-stone-400 truncate max-w-[90%]">
               {nextItem.title}
             </span>
           </div>

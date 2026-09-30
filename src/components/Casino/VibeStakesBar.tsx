@@ -24,10 +24,10 @@ export const VibeStakesBar: React.FC<VibeStakesBarProps> = ({
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto mb-4 px-3 sm:px-4 py-2.5 rounded-2xl bg-stone-900/80 border border-amber-500/30 backdrop-blur-md flex flex-wrap items-center justify-between gap-3 shadow-lg">
+    <div className="w-full max-w-4xl mx-auto mb-4 px-3 sm:px-4 py-2.5 rounded-2xl bg-stone-900/80 border border-amber-500/30 backdrop-blur-md flex flex-wrap items-center justify-center sm:justify-between gap-3 shadow-lg">
       
       {/* Stakes Tier Selector */}
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center justify-center gap-2">
         <span className="text-[11px] font-mono font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1">
           <Flame className="w-3.5 h-3.5 text-amber-500" />
           Vibe Stakes:

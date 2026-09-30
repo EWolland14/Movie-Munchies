@@ -42,6 +42,7 @@ export interface FoodOption {
   genre: FoodGenre;
   vibeTitle: string;
   emoji: string;
+  imageUrl?: string;
   thematicTieIns: Record<string, string>; // mapping from MovieGenre or specific film vibe to funny rationale
   defaultTieIn: string;
   curatedOrder: {

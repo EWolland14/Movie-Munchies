@@ -6,6 +6,7 @@ export const MOCK_FOODS: FoodOption[] = [
     genre: 'Italian',
     vibeTitle: 'The Sunday Sauce & Brick-Oven Feast',
     emoji: '🍕',
+    imageUrl: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=800&q=80',
     thematicTieIns: {
       'Crime': 'Watching mobsters make deals in dimly-lit red sauce joints? You physically cannot watch this without crispy, blistered garlic knots and a hot honey pepperoni pie.',
       'Drama': 'Rich family drama and heated dialogue calls for slow-simmered bolognese that took 6 hours to reduce. Mangia!',
@@ -38,6 +39,7 @@ export const MOCK_FOODS: FoodOption[] = [
     genre: 'Mexican',
     vibeTitle: 'Street Tacos & Loaded Queso Extravaganza',
     emoji: '🌮',
+    imageUrl: 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?auto=format&fit=crop&w=800&q=80',
     thematicTieIns: {
       'Action': 'Explosions on screen demand explosive spice in your mouth. Birria tacos dipped in rich consome keep the adrenaline pumping.',
       'Comedy': 'Chips, salsa, and endless guac are made for laughing with a mouthful without missing a punchline.',
@@ -70,6 +72,7 @@ export const MOCK_FOODS: FoodOption[] = [
     genre: 'Burgers & Fries',
     vibeTitle: 'Smashburgers & Crispy Tallow Fries',
     emoji: '🍔',
+    imageUrl: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=800&q=80',
     thematicTieIns: {
       'Action': 'Heavy hits, explosions, and tire screeches demand a double-patty smashburger with extra secret sauce and zero regrets.',
       'Comedy': 'Bite-sized slider joy! When you are laughing out loud, you need greasy, salty perfection right at arm’s reach.',
@@ -102,6 +105,7 @@ export const MOCK_FOODS: FoodOption[] = [
     genre: 'Sushi',
     vibeTitle: 'Tokyo Midnight Rolls & Crispy Rice',
     emoji: '🍣',
+    imageUrl: 'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?auto=format&fit=crop&w=800&q=80',
     thematicTieIns: {
       'Sci-Fi': 'Neon cityscapes, cybernetics, and dystopian aesthetics practically beg for spicy tuna crispy rice and fresh salmon sashimi.',
       'Thriller': 'Sleek, meticulous plots deserve clean, sophisticated finger food that won\'t distract from subtle plot twists.',
@@ -134,6 +138,7 @@ export const MOCK_FOODS: FoodOption[] = [
     genre: 'Thai',
     vibeTitle: 'Fiery Drunken Noodles & Crispy Spring Rolls',
     emoji: '🍜',
+    imageUrl: 'https://images.unsplash.com/photo-1559314809-0d155014e29e?auto=format&fit=crop&w=800&q=80',
     thematicTieIns: {
       'Action': 'Pad Kee Mao (Drunken Noodles) packs high heat and bold Thai basil to match non-stop adrenaline.',
       'Drama': 'Complex layered storytelling matches the harmonized sweet, sour, salty, and spicy notes of rich coconut panang curry.',
@@ -166,6 +171,7 @@ export const MOCK_FOODS: FoodOption[] = [
     genre: 'Comfort Junk Food',
     vibeTitle: 'Loaded Mac & Cheese, Mozz Sticks & Cookie Skillet',
     emoji: '🧀',
+    imageUrl: 'https://images.unsplash.com/photo-1543339308-43e59d6b73a6?auto=format&fit=crop&w=800&q=80',
     thematicTieIns: {
       'Comedy': 'You’re here to laugh till your stomach hurts, so you might as well fill it with golden mozzarella sticks and loaded nachos.',
       'Horror': 'When you are clutching the couch pillows in sheer dread, you need carb-dense comfort food to ground you in reality.',
@@ -198,6 +204,7 @@ export const MOCK_FOODS: FoodOption[] = [
     genre: 'Indian',
     vibeTitle: 'Butter Chicken & Garlic Naan Feast',
     emoji: '🍛',
+    imageUrl: 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&w=800&q=80',
     thematicTieIns: {
       'Sci-Fi': 'Mind-bending epics like Dune or Interstellar require deep, aromatic spices and slow-cooked rich gravies.',
       'Drama': 'Intense emotional journeys demand deeply flavorful lamb rogan josh and warm pillow-soft naan bread.',
@@ -229,6 +236,7 @@ export const MOCK_FOODS: FoodOption[] = [
     genre: 'BBQ & Wings',
     vibeTitle: 'Smoked Brisket & Crispy Double-Dipped Wings',
     emoji: '🍗',
+    imageUrl: 'https://images.unsplash.com/photo-1527477378407-63e26424c3d4?auto=format&fit=crop&w=800&q=80',
     thematicTieIns: {
       'Action': 'Fast cars and heavy artillery demand sticky barbecue fingers, smoky dry-rub wings, and tangy slaw.',
       'Comedy': 'Pass the wet wipes! Messy eating makes funny moments even more ridiculously enjoyable.',

@@ -39,10 +39,25 @@ export const FoodCard: React.FC<FoodCardProps> = ({
         </button>
       </div>
 
-      {/* Main Title & Vibe */}
+      {/* Main Title & Gourmet Photography Banner */}
       <div className="mb-4">
+        {food.imageUrl && (
+          <div className="w-full h-36 sm:h-40 rounded-xl overflow-hidden mb-3 relative border border-white/10 shadow-md">
+            <img
+              src={food.imageUrl}
+              alt={food.vibeTitle}
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/40 to-transparent" />
+            <div className="absolute bottom-2.5 left-3 right-3 flex items-center justify-between">
+              <span className="text-xs font-mono font-bold text-amber-300 bg-stone-950/80 px-2.5 py-0.5 rounded-full border border-amber-500/30">
+                Fresh Gourmet Delivery
+              </span>
+            </div>
+          </div>
+        )}
+
         <h3 className="font-display text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-2">
-          <span>{food.emoji}</span>
           <span>{food.vibeTitle}</span>
         </h3>
       </div>

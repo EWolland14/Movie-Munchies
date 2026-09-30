@@ -19,33 +19,33 @@ interface CasinoSlotMachineProps {
 
 // 1. Reel 1: Movie Genres
 const REEL_GENRES: { genre: MovieGenre; item: ReelItem }[] = [
-  { genre: 'Action', item: { id: 'Action', title: 'Action', subtitle: 'Adrenaline', emoji: '💥' } },
-  { genre: 'Sci-Fi', item: { id: 'Sci-Fi', title: 'Sci-Fi', subtitle: 'Cosmic', emoji: '🚀' } },
-  { genre: 'Comedy', item: { id: 'Comedy', title: 'Comedy', subtitle: 'Laughs', emoji: '😂' } },
-  { genre: 'Horror', item: { id: 'Horror', title: 'Horror', subtitle: 'Chills', emoji: '👻' } },
-  { genre: 'Drama', item: { id: 'Drama', title: 'Drama', subtitle: 'Deep Stakes', emoji: '🎭' } },
-  { genre: 'Animation', item: { id: 'Animation', title: 'Animation', subtitle: 'Artistry', emoji: '🎨' } },
-  { genre: 'Thriller', item: { id: 'Thriller', title: 'Thriller', subtitle: 'Suspense', emoji: '🕵️' } },
-  { genre: 'Crime', item: { id: 'Crime', title: 'Crime', subtitle: 'Underworld', emoji: '💼' } },
+  { genre: 'Action', item: { id: 'Action', title: 'Action', subtitle: 'Adrenaline', emoji: '💥', imageUrl: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=300&q=80' } },
+  { genre: 'Sci-Fi', item: { id: 'Sci-Fi', title: 'Sci-Fi', subtitle: 'Cosmic', emoji: '🚀', imageUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=300&q=80' } },
+  { genre: 'Comedy', item: { id: 'Comedy', title: 'Comedy', subtitle: 'Laughs', emoji: '😂', imageUrl: 'https://images.unsplash.com/photo-1514306191717-452ec28c7814?auto=format&fit=crop&w=300&q=80' } },
+  { genre: 'Horror', item: { id: 'Horror', title: 'Horror', subtitle: 'Chills', emoji: '👻', imageUrl: 'https://images.unsplash.com/photo-1509248961158-e54f6934749c?auto=format&fit=crop&w=300&q=80' } },
+  { genre: 'Drama', item: { id: 'Drama', title: 'Drama', subtitle: 'Deep Stakes', emoji: '🎭', imageUrl: 'https://images.unsplash.com/photo-1507676184212-d03ab07a01bf?auto=format&fit=crop&w=300&q=80' } },
+  { genre: 'Animation', item: { id: 'Animation', title: 'Animation', subtitle: 'Artistry', emoji: '🎨', imageUrl: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=300&q=80' } },
+  { genre: 'Thriller', item: { id: 'Thriller', title: 'Thriller', subtitle: 'Suspense', emoji: '🕵️', imageUrl: 'https://images.unsplash.com/photo-1478760329108-5c3ed9d495a0?auto=format&fit=crop&w=300&q=80' } },
+  { genre: 'Crime', item: { id: 'Crime', title: 'Crime', subtitle: 'Underworld', emoji: '💼', imageUrl: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=300&q=80' } },
 ];
 
 // 2. Reel 2: Runtime Categories
 const REEL_RUNTIMES: { runtime: RuntimeCategory; item: ReelItem }[] = [
-  { runtime: 'quick', item: { id: 'quick', title: 'Quick Snack', subtitle: '< 100 mins', emoji: '⚡' } },
-  { runtime: 'standard', item: { id: 'standard', title: 'Standard Feature', subtitle: '~120 mins', emoji: '🍿' } },
-  { runtime: 'epic', item: { id: 'epic', title: 'Cinematic Epic', subtitle: '> 150 mins', emoji: '👑' } },
+  { runtime: 'quick', item: { id: 'quick', title: 'Quick Snack', subtitle: '< 100 mins', emoji: '⚡', imageUrl: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?auto=format&fit=crop&w=300&q=80' } },
+  { runtime: 'standard', item: { id: 'standard', title: 'Standard Feature', subtitle: '~120 mins', emoji: '🍿', imageUrl: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=300&q=80' } },
+  { runtime: 'epic', item: { id: 'epic', title: 'Cinematic Epic', subtitle: '> 150 mins', emoji: '👑', imageUrl: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=300&q=80' } },
 ];
 
 // 3. Reel 3: Food Feasts
 const REEL_FOODS: { food: FoodGenre; item: ReelItem }[] = [
-  { food: 'Italian', item: { id: 'Italian', title: 'Italian Pizza', subtitle: 'Brick Oven', emoji: '🍕' } },
-  { food: 'Mexican', item: { id: 'Mexican', title: 'Birria Tacos', subtitle: 'Street Heat', emoji: '🌮' } },
-  { food: 'Burgers & Fries', item: { id: 'Burgers & Fries', title: 'Smashburgers', subtitle: 'Crispy Fries', emoji: '🍔' } },
-  { food: 'Sushi', item: { id: 'Sushi', title: 'Tokyo Sushi', subtitle: 'Crispy Rice', emoji: '🍣' } },
-  { food: 'Thai', item: { id: 'Thai', title: 'Thai Noodles', subtitle: 'Spicy Wok', emoji: '🍜' } },
-  { food: 'Comfort Junk Food', item: { id: 'Comfort Junk Food', title: 'Comfort Junk', subtitle: 'Mac & Cheese', emoji: '🧀' } },
-  { food: 'BBQ & Wings', item: { id: 'BBQ & Wings', title: 'Smoked BBQ', subtitle: 'Crispy Wings', emoji: '🍗' } },
-  { food: 'Indian', item: { id: 'Indian', title: 'Butter Chicken', subtitle: 'Garlic Naan', emoji: '🍛' } },
+  { food: 'Italian', item: { id: 'Italian', title: 'Italian Pizza', subtitle: 'Brick Oven', emoji: '🍕', imageUrl: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=300&q=80' } },
+  { food: 'Mexican', item: { id: 'Mexican', title: 'Birria Tacos', subtitle: 'Street Heat', emoji: '🌮', imageUrl: 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?auto=format&fit=crop&w=300&q=80' } },
+  { food: 'Burgers & Fries', item: { id: 'Burgers & Fries', title: 'Smashburgers', subtitle: 'Crispy Fries', emoji: '🍔', imageUrl: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=300&q=80' } },
+  { food: 'Sushi', item: { id: 'Sushi', title: 'Tokyo Sushi', subtitle: 'Crispy Rice', emoji: '🍣', imageUrl: 'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?auto=format&fit=crop&w=300&q=80' } },
+  { food: 'Thai', item: { id: 'Thai', title: 'Thai Noodles', subtitle: 'Spicy Wok', emoji: '🍜', imageUrl: 'https://images.unsplash.com/photo-1559314809-0d155014e29e?auto=format&fit=crop&w=300&q=80' } },
+  { food: 'Comfort Junk Food', item: { id: 'Comfort Junk Food', title: 'Comfort Junk', subtitle: 'Mac & Cheese', emoji: '🧀', imageUrl: 'https://images.unsplash.com/photo-1543339308-43e59d6b73a6?auto=format&fit=crop&w=300&q=80' } },
+  { food: 'BBQ & Wings', item: { id: 'BBQ & Wings', title: 'Smoked BBQ', subtitle: 'Crispy Wings', emoji: '🍗', imageUrl: 'https://images.unsplash.com/photo-1527477378407-63e26424c3d4?auto=format&fit=crop&w=300&q=80' } },
+  { food: 'Indian', item: { id: 'Indian', title: 'Butter Chicken', subtitle: 'Garlic Naan', emoji: '🍛', imageUrl: 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&w=300&q=80' } },
 ];
 
 export const CasinoSlotMachine: React.FC<CasinoSlotMachineProps> = ({
@@ -282,11 +282,14 @@ export const CasinoSlotMachine: React.FC<CasinoSlotMachineProps> = ({
       />
 
       {/* Main Outer Cabinet Shell with 3D Depth */}
-      <div className="relative flex items-center justify-center">
+      <div className="relative flex items-center justify-center w-full">
         
+        {/* Invisible Left Counter-Spacer of identical width to the lever on the right */}
+        <div className="w-16 sm:w-20 hidden md:block pointer-events-none opacity-0 select-none mr-1 sm:mr-3" aria-hidden="true" />
+
         {/* 3D SLOT MACHINE CABINET (Crimson Enamel & Chrome from Image 2) */}
         <div
-          className="relative w-full max-w-2xl rounded-3xl p-4 sm:p-7 shadow-[0_20px_50px_rgba(0,0,0,0.9),0_0_60px_rgba(220,38,38,0.25)] border-[5px] border-stone-800"
+          className="relative w-full max-w-2xl rounded-3xl p-4 sm:p-7 shadow-[0_20px_50px_rgba(0,0,0,0.9),0_0_60px_rgba(220,38,38,0.25)] border-[5px] border-stone-800 flex-shrink-0"
           style={{
             background: 'linear-gradient(135deg, #7f1d1d 0%, #991b1b 30%, #581212 70%, #2b0808 100%)',
           }}
@@ -418,10 +421,10 @@ export const CasinoSlotMachine: React.FC<CasinoSlotMachineProps> = ({
           </div>
 
           {/* 4. CANTILEVERED CONSOLE SHELF WITH COLORED ARCADE BUTTONS (from Image 2) */}
-          <div className="rounded-xl bg-gradient-to-r from-stone-900 via-stone-800 to-stone-900 p-2.5 border-t-2 border-stone-600 shadow-[0_4px_12px_rgba(0,0,0,0.8)] flex flex-wrap items-center justify-between gap-3">
+          <div className="rounded-xl bg-gradient-to-r from-stone-900 via-stone-800 to-stone-900 p-3 border-t-2 border-stone-600 shadow-[0_4px_12px_rgba(0,0,0,0.8)] flex flex-col sm:flex-row items-center justify-center gap-3">
             
             {/* Mode Toggle Buttons */}
-            <div className="flex items-center gap-1.5 p-1 rounded-xl bg-stone-950 border border-white/5 text-xs">
+            <div className="flex items-center justify-center gap-1.5 p-1 rounded-xl bg-stone-950 border border-white/5 text-xs">
               <button
                 type="button"
                 disabled={anySpinning}
@@ -460,7 +463,7 @@ export const CasinoSlotMachine: React.FC<CasinoSlotMachineProps> = ({
               type="button"
               disabled={anySpinning}
               onClick={handleLeverOrButtonPull}
-              className={`flex-1 min-w-[170px] py-3.5 px-6 rounded-2xl font-display font-black text-sm sm:text-base uppercase tracking-wider text-stone-950 transition-all transform active:scale-95 shadow-[0_4px_15px_rgba(245,158,11,0.5)] ${
+              className={`w-full sm:flex-1 min-w-[170px] py-3.5 px-6 rounded-2xl font-display font-black text-sm sm:text-base uppercase tracking-wider text-stone-950 transition-all transform active:scale-95 shadow-[0_4px_15px_rgba(245,158,11,0.5)] ${
                 anySpinning
                   ? 'bg-stone-700 cursor-not-allowed text-stone-400 shadow-none'
                   : 'bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 hover:brightness-110 shadow-glow-gold'
