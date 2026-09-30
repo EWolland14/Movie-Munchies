@@ -8,11 +8,11 @@ interface SlotLeverProps {
 }
 
 export const SlotLever: React.FC<SlotLeverProps> = ({ isSpinning, onPull, soundEnabled }) => {
-  const [dragProgress, setDragProgress] = useState(0); // 0 to 1
+  const [dragProgress, setDragProgress] = useState(0); // 0 (upright) to 1 (fully pulled down)
   const [isPullingAnim, setIsPullingAnim] = useState(false);
   const isDraggingRef = useRef(false);
   const startYRef = useRef(0);
-  const maxDrag = 110; // max px pull down
+  const maxDrag = 120; // px distance to pull down
 
   const triggerPull = useCallback(() => {
     if (isSpinning) return;
@@ -20,16 +20,16 @@ export const SlotLever: React.FC<SlotLeverProps> = ({ isSpinning, onPull, soundE
     setDragProgress(1);
     playLeverPullSound(soundEnabled);
 
-    // Call onPull after brief mechanical initiation
+    // Call onPull after brief mechanical engagement
     setTimeout(() => {
       onPull();
-    }, 180);
+    }, 220);
 
-    // Snap lever back up after pull
+    // Elastic spring oscillation back upright
     setTimeout(() => {
       setIsPullingAnim(false);
       setDragProgress(0);
-    }, 450);
+    }, 600);
   }, [isSpinning, soundEnabled, onPull]);
 
   const handlePointerDown = (e: React.PointerEvent) => {
@@ -61,15 +61,14 @@ export const SlotLever: React.FC<SlotLeverProps> = ({ isSpinning, onPull, soundE
       // Ignore
     }
 
-    if (dragProgress > 0.45) {
+    if (dragProgress > 0.4) {
       triggerPull();
     } else {
-      // Snap back without triggering
       setDragProgress(0);
     }
   };
 
-  // Keyboard shortcut (spacebar or enter can also pull)
+  // Spacebar / Enter shortcut
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.code === 'Space' || e.code === 'Enter') && document.activeElement === document.body) {
@@ -82,24 +81,31 @@ export const SlotLever: React.FC<SlotLeverProps> = ({ isSpinning, onPull, soundE
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isSpinning, isPullingAnim, triggerPull]);
 
-  // Lever calculations
-  // Arm rotation goes from 0deg (upright) to 65deg (down)
-  const rotationDeg = dragProgress * 65;
-  // Ball Y goes from 0 to 100px
-  const ballY = dragProgress * 105;
+  // Precise 3D arc calculations matching Image 2
+  // Pivot rotation degrees: 0deg upright -> 65deg forward & down
+  const armRotation = dragProgress * 62;
+  const knobTranslateY = dragProgress * 95;
+  const knobTranslateX = dragProgress * 15;
 
   return (
-    <div className="relative flex flex-col items-center justify-center select-none w-14 sm:w-16 h-[260px] sm:h-[300px]">
+    <div className="relative flex flex-col items-center justify-center select-none w-16 sm:w-20 h-[300px] sm:h-[340px]">
       
-      {/* Chrome Mounting Bracket attached to slot machine */}
-      <div className="absolute right-6 sm:right-7 top-1/2 -translate-y-1/2 w-8 h-16 rounded-l-md bg-gradient-to-r from-stone-600 via-stone-400 to-amber-600 border-l border-amber-300 shadow-md z-0" />
-      
-      {/* Circular Pivot Hinge */}
-      <div className="absolute right-4 sm:right-5 top-[58%] -translate-y-1/2 w-9 h-9 rounded-full bg-gradient-to-br from-amber-200 via-amber-500 to-stone-900 border-2 border-amber-300 shadow-[0_4px_10px_rgba(0,0,0,0.6)] z-10 flex items-center justify-center">
-        <div className="w-4 h-4 rounded-full bg-stone-950 border border-amber-400/50" />
+      {/* 1. Heavy Black Circular Flange / Mounting Base Plate (matches reference Image 2) */}
+      <div className="absolute right-5 sm:right-6 top-[56%] -translate-y-1/2 w-14 h-14 rounded-full bg-gradient-to-br from-stone-900 via-black to-stone-950 border-[3px] border-stone-800 shadow-[0_6px_20px_rgba(0,0,0,0.9),inset_0_2px_4px_rgba(255,255,255,0.15)] z-0 flex items-center justify-center">
+        {/* Subtle screw details */}
+        <div className="absolute top-1 w-1.5 h-1.5 rounded-full bg-stone-700" />
+        <div className="absolute bottom-1 w-1.5 h-1.5 rounded-full bg-stone-700" />
       </div>
 
-      {/* Lever Arm & Ball Handle (Draggable / Clickable) */}
+      {/* 2. Stepped Cylindrical Chrome Pivot Hub (matches reference Image 2) */}
+      <div className="absolute right-4 sm:right-5 top-[56%] -translate-y-1/2 w-11 h-11 rounded-full bg-gradient-to-r from-stone-400 via-white to-stone-600 border border-stone-400 shadow-[0_4px_12px_rgba(0,0,0,0.8),inset_0_2px_4px_rgba(255,255,255,0.8)] z-10 flex items-center justify-center">
+        {/* Center Chrome Bolt / Pin */}
+        <div className="w-5 h-5 rounded-full bg-gradient-to-br from-stone-200 via-stone-400 to-stone-700 border border-stone-500 shadow-inner flex items-center justify-center">
+          <div className="w-2 h-2 rounded-full bg-stone-900" />
+        </div>
+      </div>
+
+      {/* 3. The Pivot Arm Assembly: Polished Steel Rod + Cherry-Red Ball Knob */}
       <div
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
@@ -107,33 +113,38 @@ export const SlotLever: React.FC<SlotLeverProps> = ({ isSpinning, onPull, soundE
         onClick={() => {
           if (!isSpinning && !isPullingAnim) triggerPull();
         }}
-        className={`absolute right-5 sm:right-6 top-[28%] w-10 flex flex-col items-center cursor-grab active:cursor-grabbing z-20 origin-bottom transition-transform ${
-          isPullingAnim ? 'transition-all duration-300 ease-out' : ''
+        className={`absolute right-4 sm:right-5 top-[23%] w-12 flex flex-col items-center cursor-grab active:cursor-grabbing z-20 origin-[bottom_center] ${
+          isPullingAnim
+            ? 'transition-all duration-300 cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+            : 'transition-transform'
         }`}
         style={{
-          transform: `translateY(${ballY}px) rotate(${rotationDeg}deg)`,
+          transform: `translate(${knobTranslateX}px, ${knobTranslateY}px) rotate(${armRotation}deg)`,
           touchAction: 'none',
         }}
-        title="Pull or click to spin the slot machine!"
+        title="Drag down or click to spin the slot machine!"
       >
-        {/* Golden Ball Knob */}
-        <div className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-amber-100 via-amber-400 to-amber-700 border-2 border-yellow-200 shadow-[0_6px_14px_rgba(0,0,0,0.7),inset_-3px_-3px_8px_rgba(0,0,0,0.5),0_0_15px_rgba(245,158,11,0.5)] group hover:scale-105 transition-transform flex items-center justify-center">
+        
+        {/* Glossy Cherry-Red Spherical Ball Knob (matches reference Image 2) */}
+        <div className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-red-500 via-red-600 to-red-950 border border-red-400/60 shadow-[0_8px_18px_rgba(0,0,0,0.7),inset_-3px_-3px_8px_rgba(0,0,0,0.6),0_0_15px_rgba(239,68,68,0.4)] group hover:scale-105 transition-transform flex items-center justify-center">
           
-          {/* Specular Highlight on Ball */}
-          <div className="absolute top-1.5 left-2 w-3.5 h-3.5 rounded-full bg-white/70 blur-[0.5px]" />
-          <div className="text-[10px] font-black text-amber-950/60 uppercase select-none">
-            PULL
-          </div>
+          {/* Specular White Highlight Dot (classic glossy 3D sphere look) */}
+          <div className="absolute top-2 left-2.5 w-3.5 h-3.5 rounded-full bg-white/80 blur-[0.4px]" />
+          <div className="absolute top-4 left-5 w-1.5 h-1.5 rounded-full bg-white/50 blur-[0.2px]" />
+          
+          {/* Subtle Bottom Reflected Rim Light */}
+          <div className="absolute bottom-1 inset-x-3 h-1.5 rounded-full bg-red-400/30 blur-[0.6px]" />
         </div>
 
-        {/* Chrome Metallic Shaft */}
-        <div className="w-3.5 sm:w-4 h-24 sm:h-28 bg-gradient-to-r from-stone-400 via-white to-stone-500 rounded-sm border-x border-stone-600 shadow-[2px_2px_8px_rgba(0,0,0,0.5)] -mt-1" />
+        {/* Polished Stainless Steel / Chrome Cylindrical Shaft */}
+        <div className="w-3.5 sm:w-4 h-28 sm:h-32 bg-gradient-to-r from-stone-400 via-white to-stone-500 rounded-sm border-x border-stone-500 shadow-[3px_4px_10px_rgba(0,0,0,0.6)] -mt-1" />
+
       </div>
 
-      {/* "PULL" Indicator Label below */}
-      <div className="absolute bottom-2 text-center select-none pointer-events-none">
-        <span className="text-[9px] font-mono font-black text-amber-400 uppercase tracking-tighter block animate-pulse">
-          ▼ DRAG
+      {/* "DRAG LEVER" Animated Cue */}
+      <div className="absolute bottom-1 text-center select-none pointer-events-none">
+        <span className="text-[10px] font-mono font-black text-amber-400 uppercase tracking-wider block animate-bounce drop-shadow">
+          ▼ PULL
         </span>
       </div>
 

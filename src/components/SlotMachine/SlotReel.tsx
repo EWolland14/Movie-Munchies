@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Lock, Unlock } from 'lucide-react';
-import { playTickSound, playReelClunk } from '../../utils/sound';
+import { playTickSound, playReelClunk, playAnticipationTick } from '../../utils/sound';
 
 export interface ReelItem {
   id: string;
@@ -17,6 +17,7 @@ interface SlotReelProps {
   items: ReelItem[];
   selectedIndex: number;
   isSpinning: boolean;
+  isDecelerating?: boolean;
   isLocked: boolean;
   onToggleLock: () => void;
   soundEnabled: boolean;
@@ -28,6 +29,7 @@ export const SlotReel: React.FC<SlotReelProps> = ({
   items,
   selectedIndex,
   isSpinning,
+  isDecelerating,
   isLocked,
   onToggleLock,
   soundEnabled,
@@ -35,6 +37,7 @@ export const SlotReel: React.FC<SlotReelProps> = ({
   const [displayIndex, setDisplayIndex] = useState(selectedIndex);
   const wasSpinningRef = useRef(false);
 
+  // Fast Spin Phase
   useEffect(() => {
     if (isSpinning) {
       wasSpinningRef.current = true;
@@ -42,26 +45,46 @@ export const SlotReel: React.FC<SlotReelProps> = ({
       const interval = setInterval(() => {
         setDisplayIndex((prev) => (prev + 1) % items.length);
         tickCount++;
-        // Play tick sound every other item tick to prevent audio saturation
         if (tickCount % 2 === 0) {
           playTickSound(soundEnabled);
         }
       }, 70);
 
       return () => clearInterval(interval);
-    } else {
-      // Just stopped spinning
-      setDisplayIndex(selectedIndex);
-      if (wasSpinningRef.current) {
-        wasSpinningRef.current = false;
-        playReelClunk(soundEnabled);
-      }
     }
-  }, [isSpinning, selectedIndex, items.length, soundEnabled]);
+  }, [isSpinning, items.length, soundEnabled]);
+
+  // Deceleration / Slow-Down Phase (Suspenseful step-by-step crawl to winning item)
+  useEffect(() => {
+    if (isDecelerating && !isSpinning) {
+      // Step through a few items progressively slowing down before landing
+      let currentStep = 0;
+      const totalSteps = 4;
+      const delays = [110, 180, 280, 420];
+
+      const stepCrawl = () => {
+        if (currentStep < totalSteps - 1) {
+          setDisplayIndex((prev) => (prev + 1) % items.length);
+          playAnticipationTick(1 + currentStep * 0.15, soundEnabled);
+          currentStep++;
+          setTimeout(stepCrawl, delays[currentStep] || 300);
+        } else {
+          // Final landing on the winning item
+          setDisplayIndex(selectedIndex);
+          playReelClunk(soundEnabled);
+        }
+      };
+
+      const timer = setTimeout(stepCrawl, delays[0]);
+      return () => clearTimeout(timer);
+    } else if (!isSpinning && !isDecelerating) {
+      setDisplayIndex(selectedIndex);
+    }
+  }, [isDecelerating, isSpinning, selectedIndex, items.length, soundEnabled]);
 
   const currentItem = items[displayIndex] || items[0];
 
-  // Previous and next item for 3D cylinder illusion
+  // Cylinder perspective items
   const prevIndex = (displayIndex - 1 + items.length) % items.length;
   const nextIndex = (displayIndex + 1) % items.length;
   const prevItem = items[prevIndex];
@@ -78,9 +101,13 @@ export const SlotReel: React.FC<SlotReelProps> = ({
       </div>
 
       {/* 3D Cylindrical Reel Window */}
-      <div className="relative w-full h-[180px] sm:h-[210px] rounded-xl overflow-hidden bg-gradient-to-b from-stone-900 via-stone-950 to-stone-900 border-2 border-amber-500/40 shadow-[inset_0_4px_16px_rgba(0,0,0,0.9),0_0_15px_rgba(245,158,11,0.15)] group">
+      <div className={`relative w-full h-[185px] sm:h-[215px] rounded-xl overflow-hidden bg-gradient-to-b from-stone-900 via-stone-950 to-stone-900 border-2 transition-all ${
+        !isSpinning && !isDecelerating
+          ? 'border-amber-400 shadow-[inset_0_4px_16px_rgba(0,0,0,0.9),0_0_20px_rgba(245,158,11,0.3)]'
+          : 'border-amber-500/40 shadow-[inset_0_4px_16px_rgba(0,0,0,0.9)]'
+      }`}>
         
-        {/* Curvature Shading Gradients (Top & Bottom Shadow) */}
+        {/* Curvature Shading Gradients (Top & Bottom Cylinder Shadow) */}
         <div className="absolute inset-x-0 top-0 h-14 bg-gradient-to-b from-black via-black/80 to-transparent z-20 pointer-events-none" />
         <div className="absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-black via-black/80 to-transparent z-20 pointer-events-none" />
         
@@ -88,13 +115,13 @@ export const SlotReel: React.FC<SlotReelProps> = ({
         <div className="absolute inset-x-0 top-[38%] h-12 bg-gradient-to-b from-white/10 via-white/5 to-transparent z-20 pointer-events-none" />
 
         {/* Central Payline Marker */}
-        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[68px] sm:h-[76px] border-y border-amber-400/40 bg-amber-500/[0.04] z-10 pointer-events-none flex items-center justify-between px-1">
-          <span className="w-1.5 h-3 bg-red-500 rounded-r shadow-[0_0_8px_#ef4444]" />
-          <span className="w-1.5 h-3 bg-red-500 rounded-l shadow-[0_0_8px_#ef4444]" />
+        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[68px] sm:h-[78px] border-y border-amber-400/50 bg-amber-500/[0.04] z-10 pointer-events-none flex items-center justify-between px-1">
+          <span className="w-1.5 h-3.5 bg-red-500 rounded-r shadow-[0_0_8px_#ef4444]" />
+          <span className="w-1.5 h-3.5 bg-red-500 rounded-l shadow-[0_0_8px_#ef4444]" />
         </div>
 
         {/* Items Container */}
-        <div className={`w-full h-full flex flex-col justify-between py-2 transition-all ${isSpinning ? 'blur-[0.7px]' : ''}`}>
+        <div className={`w-full h-full flex flex-col justify-between py-2 transition-all ${isSpinning ? 'blur-[0.8px]' : ''}`}>
           
           {/* Top Ghost Item (Cylinder Curve) */}
           <div className="h-12 flex flex-col items-center justify-center opacity-30 scale-90 select-none pointer-events-none transform -translate-y-1">
@@ -106,8 +133,8 @@ export const SlotReel: React.FC<SlotReelProps> = ({
 
           {/* Winning Center Item (Payline) */}
           <div
-            className={`h-[68px] sm:h-[76px] flex flex-col items-center justify-center text-center px-2 select-none transition-transform duration-200 z-10 ${
-              !isSpinning ? 'scale-105' : 'scale-100'
+            className={`h-[68px] sm:h-[78px] flex flex-col items-center justify-center text-center px-2 select-none transition-transform duration-200 z-10 ${
+              !isSpinning && !isDecelerating ? 'scale-105' : 'scale-100'
             }`}
           >
             {currentItem.emoji && (
@@ -149,7 +176,7 @@ export const SlotReel: React.FC<SlotReelProps> = ({
       <div className="mt-2 w-full flex justify-center">
         <button
           type="button"
-          disabled={isSpinning}
+          disabled={isSpinning || isDecelerating}
           onClick={onToggleLock}
           className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] sm:text-xs font-bold uppercase tracking-wider transition-all duration-150 border ${
             isLocked

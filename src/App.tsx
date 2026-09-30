@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Navbar } from './components/Navbar';
 import { FilterControls } from './components/FilterControls';
+import { CasinoEnvironment } from './components/Casino/CasinoEnvironment';
+import { VibeStakesBar, VibeStakeTier } from './components/Casino/VibeStakesBar';
 import { CasinoSlotMachine } from './components/SlotMachine/CasinoSlotMachine';
 import { ResultCard } from './components/ResultCard';
 import { HistoryDrawer } from './components/HistoryDrawer';
@@ -24,11 +26,16 @@ const INITIAL_FILTERS: FilterState = {
 export function App() {
   const [filters, setFilters] = useState<FilterState>(INITIAL_FILTERS);
   const [currentMovie, setCurrentMovie] = useState<Movie | null>(null);
+  const [companionMovie, setCompanionMovie] = useState<Movie | null>(null);
   const [currentFood, setCurrentFood] = useState<FoodOption | null>(null);
   const [thematicTieIn, setThematicTieIn] = useState<string>('');
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [isLocked, setIsLocked] = useState<boolean>(false);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState<boolean>(false);
+
+  // Casino Vibe Stakes & Ambience state
+  const [stakeTier, setStakeTier] = useState<VibeStakeTier>('casual');
+  const [ambienceEnabled, setAmbienceEnabled] = useState<boolean>(false);
 
   // Sound preference state
   const [soundEnabled, setSoundEnabled] = useState<boolean>(() => {
@@ -108,6 +115,14 @@ export function App() {
     const spots = getNearbyRestaurants(food.genre, filters.location);
 
     setCurrentMovie(movie);
+    // If Double Feature stake active, pick a complementary companion movie!
+    if (stakeTier === 'double-feature') {
+      const companion = pickMovie(genre, undefined, movie.id);
+      setCompanionMovie(companion);
+    } else {
+      setCompanionMovie(null);
+    }
+
     setCurrentFood(food);
     setThematicTieIn(tieIn);
     setRestaurants(spots);
@@ -121,6 +136,10 @@ export function App() {
     const tieIn = getThematicTieIn(currentFood, movie.genres);
 
     setCurrentMovie(movie);
+    if (stakeTier === 'double-feature') {
+      const companion = pickMovie(undefined, undefined, movie.id);
+      setCompanionMovie(companion);
+    }
     setThematicTieIn(tieIn);
     setIsLocked(false);
   };
@@ -163,6 +182,7 @@ export function App() {
     setCurrentFood(pairing.food);
     setThematicTieIn(pairing.thematicTieIn);
     setRestaurants(pairing.restaurants || getNearbyRestaurants(pairing.food.genre, pairing.location));
+    setCompanionMovie(null);
     setIsLocked(true);
   };
 
@@ -201,10 +221,10 @@ export function App() {
   }, [filters.location, currentFood?.genre]);
 
   return (
-    <div className="min-h-screen bg-cinema-950 text-slate-100 flex flex-col relative selection:bg-cinema-crimson selection:text-white">
-      {/* Background radial atmosphere */}
-      <div className="fixed inset-0 bg-radial-gradient pointer-events-none" />
-      <div className="fixed top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[500px] bg-cinema-crimson/5 blur-[140px] pointer-events-none rounded-full" />
+    <div className="min-h-screen bg-stone-950 text-slate-100 flex flex-col relative selection:bg-red-600 selection:text-white overflow-x-hidden">
+      
+      {/* 1. Photorealistic Vegas Casino Floor Environment (matches reference Image 1) */}
+      <CasinoEnvironment />
 
       {/* Navigation Header */}
       <Navbar
@@ -218,24 +238,32 @@ export function App() {
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 relative z-10">
         
         {/* Hero Tagline */}
-        <div className="text-center max-w-3xl mx-auto mb-6 sm:mb-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cinema-gold/10 border border-cinema-gold/30 text-cinema-gold text-xs font-bold uppercase tracking-wider mb-3 shadow-glow-gold/20">
-            <Compass className="w-3.5 h-3.5" />
-            Vegas Casino Cinema Randomizer
+        <div className="text-center max-w-3xl mx-auto mb-5 sm:mb-7">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-red-950/80 border border-red-500/40 text-amber-300 text-xs font-mono font-black uppercase tracking-wider mb-3 shadow-[0_0_15px_rgba(239,68,68,0.3)]">
+            <Compass className="w-3.5 h-3.5 text-amber-400" />
+            Vegas High Roller Cinema Randomizer
           </div>
-          <h1 className="font-display text-4xl sm:text-6xl font-black text-white tracking-tight leading-[1.1]">
+          <h1 className="font-display text-4xl sm:text-6xl font-black text-white tracking-tight leading-[1.1] drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]">
             Pull The Lever.{' '}
-            <span className="bg-gradient-to-r from-yellow-300 via-amber-400 to-amber-600 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-yellow-200 via-amber-400 to-amber-600 bg-clip-text text-transparent">
               Hit The Jackpot.
             </span>{' '}
             Feast Tonight.
           </h1>
-          <p className="mt-3 text-slate-400 text-sm sm:text-base max-w-xl mx-auto">
-            Drag the mechanical arm or press spin to roll your Film Genre, Runtime Pace, and Delivery Munchies!
+          <p className="mt-2.5 text-stone-300 text-sm sm:text-base max-w-xl mx-auto drop-shadow">
+            Drag the mechanical arm to spin the Genre, Runtime, and Delivery Feast in high-suspense deceleration!
           </p>
         </div>
 
-        {/* THE VEGAS CASINO SLOT MACHINE */}
+        {/* Casino Vibe Stakes & Ambience Bar */}
+        <VibeStakesBar
+          stakeTier={stakeTier}
+          onChangeStakeTier={setStakeTier}
+          ambienceEnabled={ambienceEnabled}
+          onToggleAmbience={() => setAmbienceEnabled(!ambienceEnabled)}
+        />
+
+        {/* 3D VEGAS CASINO SLOT MACHINE (matches reference Image 2) */}
         <CasinoSlotMachine
           onSpinComplete={handleSlotSpinComplete}
           activeMovie={currentMovie}
@@ -248,9 +276,9 @@ export function App() {
           <button
             type="button"
             onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-            className="inline-flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-xl border border-white/10 bg-cinema-900/60 hover:bg-cinema-800 text-slate-300 hover:text-white transition-all shadow-sm"
+            className="inline-flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-xl border border-white/10 bg-stone-900/80 hover:bg-stone-800 text-slate-300 hover:text-white transition-all shadow-sm"
           >
-            <SlidersHorizontal className="w-3.5 h-3.5 text-cinema-gold" />
+            <SlidersHorizontal className="w-3.5 h-3.5 text-amber-400" />
             <span>{showAdvancedFilters ? 'Hide Location & Preferences' : 'Customize Location & Preferences'}</span>
             {showAdvancedFilters ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
           </button>
@@ -272,6 +300,8 @@ export function App() {
           <div className="mt-8">
             <ResultCard
               movie={currentMovie}
+              companionMovie={companionMovie}
+              stakeTier={stakeTier}
               food={currentFood}
               thematicTieIn={thematicTieIn}
               restaurants={restaurants}
@@ -288,15 +318,15 @@ export function App() {
       </main>
 
       {/* Footer */}
-      <footer className="w-full border-t border-white/5 py-8 mt-16 bg-cinema-950/60 backdrop-blur-sm text-center text-xs text-slate-500">
+      <footer className="w-full border-t border-white/10 py-8 mt-16 bg-stone-950/80 backdrop-blur-md text-center text-xs text-stone-500 relative z-10">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <span className="text-base">🎰</span>
-            <span className="font-bold text-slate-400">The Movie & Munchies Oracle</span>
-            <span>• Vegas Casino Edition</span>
+            <span className="font-bold text-stone-300">The Movie & Munchies Oracle</span>
+            <span>• Vegas Casino High Roller Edition</span>
           </div>
           <div>
-            Powered by React, Tailwind CSS & High-Stakes Cinema Curation
+            Crafted for Film Cinephiles &amp; Hungry High Rollers
           </div>
         </div>
       </footer>

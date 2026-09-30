@@ -4,7 +4,7 @@ import { SlotLever } from './SlotLever';
 import { GoldCoinShower } from './GoldCoinShower';
 import { MovieGenre, FoodGenre, RuntimeCategory, Movie, FoodOption } from '../../types';
 import { Sparkles, Dices } from 'lucide-react';
-import { playJackpotFanfare } from '../../utils/sound';
+import { playJackpotFanfare, playSubBassClunk } from '../../utils/sound';
 
 interface CasinoSlotMachineProps {
   onSpinComplete: (selected: {
@@ -59,26 +59,31 @@ export const CasinoSlotMachine: React.FC<CasinoSlotMachineProps> = ({
   const [runtimeIdx, setRuntimeIdx] = useState(1);
   const [foodIdx, setFoodIdx] = useState(0);
 
-  // Spinning states for each reel
+  // Fast spinning states
   const [isSpinning1, setIsSpinning1] = useState(false);
   const [isSpinning2, setIsSpinning2] = useState(false);
   const [isSpinning3, setIsSpinning3] = useState(false);
+
+  // Slower deceleration crawl states
+  const [isDecel1, setIsDecel1] = useState(false);
+  const [isDecel2, setIsDecel2] = useState(false);
+  const [isDecel3, setIsDecel3] = useState(false);
 
   // Reel Holds
   const [hold1, setHold1] = useState(false);
   const [hold2, setHold2] = useState(false);
   const [hold3, setHold3] = useState(false);
 
-  // Mode: 'cascading' (All at once with staggered stops) vs 'step' (lever spins one reel at a time)
+  // Spin Mode: Cascading vs Step-by-Step
   const [spinMode, setSpinMode] = useState<'cascading' | 'step'>('cascading');
-  const [stepStage, setStepStage] = useState<1 | 2 | 3>(1); // which reel to spin next in step mode
+  const [stepStage, setStepStage] = useState<1 | 2 | 3>(1);
 
   // Visual effects
   const [showCoinShower, setShowCoinShower] = useState(false);
   const [tickerMessage, setTickerMessage] = useState('★ PULL LEVER TO SPIN ★');
   const [isJackpot, setIsJackpot] = useState(false);
 
-  // Sync initial indices with active props if provided
+  // Sync initial indices with active props
   useEffect(() => {
     if (activeMovie) {
       const gIndex = REEL_GENRES.findIndex((g) => activeMovie.genres.includes(g.genre));
@@ -93,51 +98,82 @@ export const CasinoSlotMachine: React.FC<CasinoSlotMachineProps> = ({
     }
   }, [activeMovie, activeFood]);
 
-  const anySpinning = isSpinning1 || isSpinning2 || isSpinning3;
+  const anySpinning =
+    isSpinning1 || isSpinning2 || isSpinning3 || isDecel1 || isDecel2 || isDecel3;
 
-  // Execute Cascading Spin (All at once with timed stops)
+  // ==========================================
+  // DRAMATIC SLOW CASCADING REVEAL (~7 Seconds)
+  // ==========================================
   const triggerCascadingSpin = () => {
     if (anySpinning) return;
     setIsJackpot(false);
     setTickerMessage('ROLLING THE ORACLE REELS...');
 
-    // Pick target indices ahead of time
     const nextGIdx = hold1 ? genreIdx : Math.floor(Math.random() * REEL_GENRES.length);
     const nextRIdx = hold2 ? runtimeIdx : Math.floor(Math.random() * REEL_RUNTIMES.length);
     const nextFIdx = hold3 ? foodIdx : Math.floor(Math.random() * REEL_FOODS.length);
 
-    // Launch reels that aren't held
+    // Launch all reels in fast spin
     if (!hold1) setIsSpinning1(true);
     if (!hold2) setIsSpinning2(true);
     if (!hold3) setIsSpinning3(true);
 
-    // Staggered stops:
-    // Reel 1 stops at 1.1s
+    // --- REEL 1 (GENRE) ---
+    // At 2.2s: transition to deceleration crawl
+    setTimeout(() => {
+      if (!hold1) {
+        setIsSpinning1(false);
+        setIsDecel1(true);
+        setTickerMessage('DECELERATING REEL 1 (GENRE)...');
+      }
+    }, 2200);
+
+    // At 3.4s: Reel 1 firmly locks
     setTimeout(() => {
       if (!hold1) {
         setGenreIdx(nextGIdx);
-        setIsSpinning1(false);
-        setTickerMessage(`REEL 1: ${REEL_GENRES[nextGIdx].item.title.toUpperCase()}!`);
+        setIsDecel1(false);
+        setTickerMessage(`REEL 1 LOCKED: ${REEL_GENRES[nextGIdx].item.title.toUpperCase()}!`);
       }
-    }, 1100);
+    }, 3400);
 
-    // Reel 2 stops at 1.9s
+    // --- REEL 2 (RUNTIME) ---
+    // At 3.9s: transition to deceleration crawl
+    setTimeout(() => {
+      if (!hold2) {
+        setIsSpinning2(false);
+        setIsDecel2(true);
+        setTickerMessage('DECELERATING REEL 2 (RUNTIME)...');
+      }
+    }, 3900);
+
+    // At 5.1s: Reel 2 firmly locks
     setTimeout(() => {
       if (!hold2) {
         setRuntimeIdx(nextRIdx);
-        setIsSpinning2(false);
-        setTickerMessage(`REEL 2: ${REEL_RUNTIMES[nextRIdx].item.title.toUpperCase()}!`);
+        setIsDecel2(false);
+        setTickerMessage(`REEL 2 LOCKED: ${REEL_RUNTIMES[nextRIdx].item.title.toUpperCase()}!`);
       }
-    }, 1900);
+    }, 5100);
 
-    // Reel 3 stops at 2.7s -> Final celebration!
+    // --- REEL 3 (FEAST & MUNCHIES) ---
+    // At 5.5s: transition to slow suspenseful anticipation crawl
+    setTimeout(() => {
+      if (!hold3) {
+        setIsSpinning3(false);
+        setIsDecel3(true);
+        setTickerMessage('★ ANTICIPATION: LOCKING IN FEAST... ★');
+      }
+    }, 5500);
+
+    // At 7.0s: Dramatic sub-bass impact lock & grand jackpot celebration!
     setTimeout(() => {
       if (!hold3) {
         setFoodIdx(nextFIdx);
-        setIsSpinning3(false);
+        setIsDecel3(false);
       }
 
-      // Finish spin & reward
+      playSubBassClunk(soundEnabled);
       setTickerMessage('💰 JACKPOT! FEAST & FILM LOCKED! 💰');
       setIsJackpot(true);
       setShowCoinShower(true);
@@ -148,10 +184,12 @@ export const CasinoSlotMachine: React.FC<CasinoSlotMachineProps> = ({
         runtime: REEL_RUNTIMES[nextRIdx].runtime,
         foodGenre: REEL_FOODS[nextFIdx].food,
       });
-    }, 2700);
+    }, 7000);
   };
 
-  // Execute Step-by-Step Spin (One column per lever pull)
+  // ==========================================
+  // STEP-BY-STEP REEL SPIN (One per pull)
+  // ==========================================
   const triggerStepSpin = () => {
     if (anySpinning) return;
     setIsJackpot(false);
@@ -162,11 +200,15 @@ export const CasinoSlotMachine: React.FC<CasinoSlotMachineProps> = ({
         setTickerMessage('SPINNING REEL 1: MOVIE GENRE...');
         const nextGIdx = Math.floor(Math.random() * REEL_GENRES.length);
         setTimeout(() => {
-          setGenreIdx(nextGIdx);
           setIsSpinning1(false);
+          setIsDecel1(true);
+        }, 1600);
+        setTimeout(() => {
+          setGenreIdx(nextGIdx);
+          setIsDecel1(false);
           setTickerMessage(`REEL 1: ${REEL_GENRES[nextGIdx].item.title.toUpperCase()}! PULL FOR RUNTIME`);
           setStepStage(2);
-        }, 1100);
+        }, 2800);
       } else {
         setStepStage(2);
       }
@@ -176,11 +218,15 @@ export const CasinoSlotMachine: React.FC<CasinoSlotMachineProps> = ({
         setTickerMessage('SPINNING REEL 2: RUNTIME PACE...');
         const nextRIdx = Math.floor(Math.random() * REEL_RUNTIMES.length);
         setTimeout(() => {
-          setRuntimeIdx(nextRIdx);
           setIsSpinning2(false);
+          setIsDecel2(true);
+        }, 1600);
+        setTimeout(() => {
+          setRuntimeIdx(nextRIdx);
+          setIsDecel2(false);
           setTickerMessage(`REEL 2: ${REEL_RUNTIMES[nextRIdx].item.title.toUpperCase()}! PULL FOR FEAST`);
           setStepStage(3);
-        }, 1100);
+        }, 2800);
       } else {
         setStepStage(3);
       }
@@ -190,8 +236,13 @@ export const CasinoSlotMachine: React.FC<CasinoSlotMachineProps> = ({
         setTickerMessage('SPINNING REEL 3: FOOD FEAST...');
         const nextFIdx = Math.floor(Math.random() * REEL_FOODS.length);
         setTimeout(() => {
-          setFoodIdx(nextFIdx);
           setIsSpinning3(false);
+          setIsDecel3(true);
+        }, 1600);
+        setTimeout(() => {
+          setFoodIdx(nextFIdx);
+          setIsDecel3(false);
+          playSubBassClunk(soundEnabled);
           setTickerMessage('💰 JACKPOT! ALL REELS LOCKED! 💰');
           setIsJackpot(true);
           setShowCoinShower(true);
@@ -203,7 +254,7 @@ export const CasinoSlotMachine: React.FC<CasinoSlotMachineProps> = ({
             runtime: REEL_RUNTIMES[runtimeIdx].runtime,
             foodGenre: REEL_FOODS[nextFIdx].food,
           });
-        }, 1100);
+        }, 2900);
       } else {
         setStepStage(1);
       }
@@ -218,79 +269,80 @@ export const CasinoSlotMachine: React.FC<CasinoSlotMachineProps> = ({
     }
   };
 
-  // Bulbs around top marquee arch
-  const bulbs = useMemo(() => Array.from({ length: 18 }), []);
+  // Marquee bulbs
+  const bulbs = useMemo(() => Array.from({ length: 20 }), []);
 
   return (
     <div className="relative w-full max-w-4xl mx-auto my-6 select-none">
       
-      {/* Falling Gold Coins & Sparkles Particle Overlay */}
+      {/* Falling Gold Coins Particle Overlay */}
       <GoldCoinShower
         active={showCoinShower}
         onComplete={() => setShowCoinShower(false)}
       />
 
-      {/* Main Outer Cabinet Shell */}
+      {/* Main Outer Cabinet Shell with 3D Depth */}
       <div className="relative flex items-center justify-center">
         
-        {/* SLOT MACHINE CHASSIS */}
-        <div className="relative w-full max-w-2xl bg-gradient-to-b from-stone-900 via-stone-950 to-black rounded-3xl p-4 sm:p-7 border-4 border-amber-500/60 shadow-[0_0_50px_rgba(245,158,11,0.3),0_20px_40px_rgba(0,0,0,0.9)] overflow-hidden">
+        {/* 3D SLOT MACHINE CABINET (Crimson Enamel & Chrome from Image 2) */}
+        <div
+          className="relative w-full max-w-2xl rounded-3xl p-4 sm:p-7 shadow-[0_20px_50px_rgba(0,0,0,0.9),0_0_60px_rgba(220,38,38,0.25)] border-[5px] border-stone-800"
+          style={{
+            background: 'linear-gradient(135deg, #7f1d1d 0%, #991b1b 30%, #581212 70%, #2b0808 100%)',
+          }}
+        >
           
-          {/* Metallic Gold Trim & Corner Rivet Highlights */}
-          <div className="absolute inset-0 rounded-3xl border border-amber-300/40 pointer-events-none" />
-          <div className="absolute top-2 left-3 w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_6px_#f59e0b]" />
-          <div className="absolute top-2 right-3 w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_6px_#f59e0b]" />
-          <div className="absolute bottom-2 left-3 w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_6px_#f59e0b]" />
-          <div className="absolute bottom-2 right-3 w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_6px_#f59e0b]" />
-
-          {/* 1. TOP ARCHED MARQUEE: "JACKPOT ORACLE" with chasing casino bulbs */}
-          <div className="relative w-full mx-auto mb-5 rounded-2xl bg-gradient-to-r from-red-950 via-red-900 to-red-950 p-2 border-2 border-amber-400 shadow-[0_0_20px_rgba(239,68,68,0.4)]">
+          {/* Beveled Chrome Cabinet Highlight Ring */}
+          <div className="absolute inset-0 rounded-3xl border-2 border-stone-300/30 pointer-events-none" />
+          
+          {/* 1. ARCHED TOP CASINO MARQUEE (Classic Vegas from Image 2) */}
+          <div className="relative w-full mx-auto mb-4 rounded-t-full rounded-b-2xl bg-gradient-to-b from-stone-900 via-stone-950 to-red-950 p-3 border-[3px] border-amber-400/90 shadow-[0_0_25px_rgba(245,158,11,0.5)]">
             
-            {/* Chasing Marquee Bulbs Ring */}
-            <div className="flex items-center justify-between px-2 mb-1">
+            {/* Chasing Light Bulbs Arch */}
+            <div className="flex items-center justify-between px-3 mb-1">
               {bulbs.map((_, i) => (
                 <span
                   key={i}
-                  className={`w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full ${
+                  className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full transition-all ${
                     i % 2 === 0
-                      ? 'bg-amber-300 shadow-[0_0_8px_#fde047] animate-pulse'
+                      ? 'bg-amber-300 shadow-[0_0_10px_#fde047] animate-pulse'
                       : 'bg-red-500 shadow-[0_0_8px_#ef4444]'
                   }`}
-                  style={{ animationDelay: `${(i * 120) % 1000}ms` }}
+                  style={{ animationDelay: `${(i * 100) % 1000}ms` }}
                 />
               ))}
             </div>
 
-            {/* Glowing Marquee Text */}
+            {/* Glowing Golden Fan Text Plaque */}
             <div className="text-center py-1 sm:py-2">
-              <div className="inline-block font-display font-black text-2xl sm:text-4xl tracking-widest text-transparent bg-clip-text bg-gradient-to-b from-yellow-200 via-amber-400 to-amber-600 filter drop-shadow-[0_2px_10px_rgba(245,158,11,0.8)] uppercase">
-                ★ JACKPOT ORACLE ★
+              <div className="inline-block font-display font-black text-2xl sm:text-4xl tracking-widest text-transparent bg-clip-text bg-gradient-to-b from-amber-100 via-amber-300 to-amber-600 filter drop-shadow-[0_2px_12px_rgba(245,158,11,0.9)] uppercase">
+                ★ CASINO ORACLE ★
               </div>
-              <div className="text-[10px] sm:text-xs font-mono font-bold tracking-widest text-amber-200/80 uppercase">
-                Spin Your Film &amp; Feast
+              <div className="text-[10px] sm:text-xs font-mono font-black tracking-widest text-amber-200/90 uppercase mt-0.5">
+                Spin Your Film &amp; Feast Pairing
               </div>
             </div>
 
-            <div className="flex items-center justify-between px-2 mt-1">
+            <div className="flex items-center justify-between px-3 mt-1">
               {bulbs.map((_, i) => (
                 <span
                   key={i}
-                  className={`w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full ${
+                  className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full transition-all ${
                     i % 2 !== 0
-                      ? 'bg-amber-300 shadow-[0_0_8px_#fde047] animate-pulse'
+                      ? 'bg-amber-300 shadow-[0_0_10px_#fde047] animate-pulse'
                       : 'bg-red-500 shadow-[0_0_8px_#ef4444]'
                   }`}
-                  style={{ animationDelay: `${((i + 1) * 120) % 1000}ms` }}
+                  style={{ animationDelay: `${((i + 1) * 100) % 1000}ms` }}
                 />
               ))}
             </div>
 
           </div>
 
-          {/* 2. REEL DISPLAY WINDOW (Beveled Gold Frame) */}
-          <div className="relative rounded-2xl bg-stone-950 p-3 sm:p-4 border-4 border-amber-600/80 shadow-[inset_0_4px_25px_rgba(0,0,0,0.95)]">
+          {/* 2. CHROME-BEVELED REEL VIEWPORT (Image 2 Silver Window) */}
+          <div className="relative rounded-2xl bg-stone-950 p-3 sm:p-4 border-[4px] border-stone-300/80 shadow-[inset_0_6px_30px_rgba(0,0,0,0.95),0_4px_15px_rgba(0,0,0,0.7)]">
             
-            {/* The 3 Slot Reels */}
+            {/* The 3 Cylindrical Slot Reels */}
             <div className="flex items-center justify-between gap-2 sm:gap-4">
               <SlotReel
                 label="Reel 1: Genre"
@@ -298,12 +350,13 @@ export const CasinoSlotMachine: React.FC<CasinoSlotMachineProps> = ({
                 items={REEL_GENRES.map((g) => g.item)}
                 selectedIndex={genreIdx}
                 isSpinning={isSpinning1}
+                isDecelerating={isDecel1}
                 isLocked={hold1}
                 onToggleLock={() => setHold1(!hold1)}
                 soundEnabled={soundEnabled}
               />
 
-              <div className="w-[2px] h-36 bg-gradient-to-b from-transparent via-amber-500/40 to-transparent" />
+              <div className="w-[3px] h-40 bg-gradient-to-b from-stone-700 via-stone-300 to-stone-800 shadow-sm" />
 
               <SlotReel
                 label="Reel 2: Runtime"
@@ -311,12 +364,13 @@ export const CasinoSlotMachine: React.FC<CasinoSlotMachineProps> = ({
                 items={REEL_RUNTIMES.map((r) => r.item)}
                 selectedIndex={runtimeIdx}
                 isSpinning={isSpinning2}
+                isDecelerating={isDecel2}
                 isLocked={hold2}
                 onToggleLock={() => setHold2(!hold2)}
                 soundEnabled={soundEnabled}
               />
 
-              <div className="w-[2px] h-36 bg-gradient-to-b from-transparent via-amber-500/40 to-transparent" />
+              <div className="w-[3px] h-40 bg-gradient-to-b from-stone-700 via-stone-300 to-stone-800 shadow-sm" />
 
               <SlotReel
                 label="Reel 3: Feast"
@@ -324,31 +378,32 @@ export const CasinoSlotMachine: React.FC<CasinoSlotMachineProps> = ({
                 items={REEL_FOODS.map((f) => f.item)}
                 selectedIndex={foodIdx}
                 isSpinning={isSpinning3}
+                isDecelerating={isDecel3}
                 isLocked={hold3}
                 onToggleLock={() => setHold3(!hold3)}
                 soundEnabled={soundEnabled}
               />
             </div>
 
-            {/* Glowing Payline Beams Indicator */}
-            <div className="mt-3 flex items-center justify-between px-2 text-[10px] text-amber-500/80 font-mono">
-              <span className="flex items-center gap-1">
+            {/* Glowing Center Payline Indicators */}
+            <div className="mt-3 flex items-center justify-between px-2 text-[10px] text-amber-400 font-mono font-bold">
+              <span className="flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-red-500 animate-ping inline-block" />
                 PAYLINE ACTIVE
               </span>
-              <span>100% RANDOMIZED MATCH</span>
+              <span className="text-stone-400">AUTHENTIC REEL DECELERATION</span>
             </div>
 
           </div>
 
           {/* 3. DIGITAL LED STATUS TICKER SCREEN */}
-          <div className="my-4 px-4 py-2.5 rounded-xl bg-black border-2 border-stone-800 shadow-[inset_0_2px_8px_rgba(0,0,0,1)] flex items-center justify-between">
-            <span className="text-[11px] font-mono text-red-700 uppercase font-black tracking-wider">
+          <div className="my-3.5 px-4 py-2.5 rounded-xl bg-black border-2 border-stone-800 shadow-[inset_0_2px_10px_rgba(0,0,0,1)] flex items-center justify-between">
+            <span className="text-[11px] font-mono text-red-600 uppercase font-black tracking-wider">
               DISPLAY:
             </span>
-            <div className={`font-mono text-xs sm:text-sm font-black tracking-widest text-center flex-1 ${
+            <div className={`font-mono text-xs sm:text-sm font-black tracking-widest text-center flex-1 px-2 ${
               isJackpot
-                ? 'text-yellow-400 shadow-[0_0_12px_#facc15] animate-pulse'
+                ? 'text-yellow-400 shadow-[0_0_15px_#facc15] animate-pulse'
                 : anySpinning
                 ? 'text-amber-400'
                 : 'text-red-500 shadow-[0_0_8px_#ef4444]'
@@ -362,11 +417,11 @@ export const CasinoSlotMachine: React.FC<CasinoSlotMachineProps> = ({
             )}
           </div>
 
-          {/* 4. CONTROL CONSOLE SHELF */}
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+          {/* 4. CANTILEVERED CONSOLE SHELF WITH COLORED ARCADE BUTTONS (from Image 2) */}
+          <div className="rounded-xl bg-gradient-to-r from-stone-900 via-stone-800 to-stone-900 p-2.5 border-t-2 border-stone-600 shadow-[0_4px_12px_rgba(0,0,0,0.8)] flex flex-wrap items-center justify-between gap-3">
             
-            {/* Spin Mode Selector Toggle */}
-            <div className="flex items-center gap-1.5 p-1 rounded-xl bg-stone-900 border border-white/10 text-xs">
+            {/* Mode Toggle Buttons */}
+            <div className="flex items-center gap-1.5 p-1 rounded-xl bg-stone-950 border border-white/5 text-xs">
               <button
                 type="button"
                 disabled={anySpinning}
@@ -405,7 +460,7 @@ export const CasinoSlotMachine: React.FC<CasinoSlotMachineProps> = ({
               type="button"
               disabled={anySpinning}
               onClick={handleLeverOrButtonPull}
-              className={`flex-1 min-w-[160px] py-3.5 px-6 rounded-2xl font-display font-black text-sm sm:text-base uppercase tracking-wider text-stone-950 transition-all transform active:scale-95 shadow-[0_4px_15px_rgba(245,158,11,0.5)] ${
+              className={`flex-1 min-w-[170px] py-3.5 px-6 rounded-2xl font-display font-black text-sm sm:text-base uppercase tracking-wider text-stone-950 transition-all transform active:scale-95 shadow-[0_4px_15px_rgba(245,158,11,0.5)] ${
                 anySpinning
                   ? 'bg-stone-700 cursor-not-allowed text-stone-400 shadow-none'
                   : 'bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 hover:brightness-110 shadow-glow-gold'
@@ -415,9 +470,9 @@ export const CasinoSlotMachine: React.FC<CasinoSlotMachineProps> = ({
                 <Dices className={`w-5 h-5 ${anySpinning ? 'animate-spin' : ''}`} />
                 <span>
                   {anySpinning
-                    ? 'Rolling...'
+                    ? 'Revealing...'
                     : spinMode === 'step'
-                    ? `Spin Reel ${stepStage} (${stepStage === 1 ? 'Genre' : stepStage === 2 ? 'Runtime' : 'Feast'})`
+                    ? `Spin Reel ${stepStage}`
                     : 'Spin The Oracle'}
                 </span>
                 <Sparkles className="w-4 h-4 text-amber-900" />
@@ -433,7 +488,7 @@ export const CasinoSlotMachine: React.FC<CasinoSlotMachineProps> = ({
                   setHold2(false);
                   setHold3(false);
                 }}
-                className="text-xs text-amber-400/80 hover:text-amber-200 px-2.5 py-1.5 rounded-lg border border-amber-500/20 hover:border-amber-500/40 transition-colors"
+                className="text-xs text-amber-400/90 hover:text-amber-200 px-2.5 py-1.5 rounded-lg border border-amber-500/20 hover:border-amber-500/40 transition-colors"
               >
                 Reset Holds
               </button>
@@ -441,22 +496,22 @@ export const CasinoSlotMachine: React.FC<CasinoSlotMachineProps> = ({
 
           </div>
 
-          {/* 5. COIN PAYOUT TRAY AT THE BASE */}
-          <div className="mt-5 pt-3 border-t border-amber-600/30 flex items-center justify-between text-xs text-stone-400">
+          {/* 5. BLACK COIN PAYOUT HOPPER TRAY (from Image 2) */}
+          <div className="mt-4 pt-3 border-t border-red-950 flex items-center justify-between text-xs text-stone-400">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_6px_#10b981]" />
-              <span className="font-mono text-[11px] text-stone-400">CASINO SLOTS ENGINE • READY</span>
+              <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]" />
+              <span className="font-mono text-[11px] text-stone-400">HIGH ROLLER EDITION • LIVE</span>
             </div>
 
             {/* Glowing "WIN" Plaque */}
-            <div className="px-3 py-1 rounded-md bg-stone-900 border border-amber-500/40 text-amber-400 font-mono font-black tracking-widest text-xs shadow-[0_0_8px_rgba(245,158,11,0.3)]">
-              WINNER EVERY TIME
+            <div className="px-3 py-1 rounded-md bg-stone-950 border border-amber-500/50 text-amber-400 font-mono font-black tracking-widest text-xs shadow-[0_0_10px_rgba(245,158,11,0.4)]">
+              ★ JACKPOT GUARANTEE ★
             </div>
           </div>
 
         </div>
 
-        {/* MECHANICAL PULL LEVER (Attached directly on the right) */}
+        {/* ACCURATE 3D MECHANICAL PULL LEVER (Attached directly on the right) */}
         <div className="ml-1 sm:ml-3">
           <SlotLever
             isSpinning={anySpinning}
