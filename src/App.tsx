@@ -235,24 +235,49 @@ export function App() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 relative z-10">
+      <main className="flex-1 max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-10 py-6 sm:py-10 relative z-10">
         
-        {/* Hero Tagline */}
-        <div className="text-center max-w-3xl mx-auto mb-5 sm:mb-7">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-red-950/80 border border-red-500/40 text-amber-300 text-xs font-mono font-black uppercase tracking-wider mb-3 shadow-[0_0_15px_rgba(239,68,68,0.3)]">
-            <Compass className="w-3.5 h-3.5 text-amber-400" />
-            Vegas High Roller Cinema Randomizer
+        {/* Full-Width Expansive Hero Section */}
+        <div className="text-center w-full max-w-6xl mx-auto mb-6">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-red-950/90 border border-red-500/50 text-amber-300 text-xs font-mono font-black uppercase tracking-widest mb-4 shadow-[0_0_20px_rgba(239,68,68,0.4)]">
+            <Compass className="w-4 h-4 text-amber-400 animate-spin-slow" />
+            Vegas High Roller Cinema Randomizer &amp; Kitchen Oracle
           </div>
-          <h1 className="font-display text-4xl sm:text-6xl font-black text-white tracking-tight leading-[1.1] drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]">
+          <h1 className="font-display text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-white tracking-tight leading-[1.05] drop-shadow-[0_5px_20px_rgba(0,0,0,0.9)]">
             Pull The Lever.{' '}
-            <span className="bg-gradient-to-r from-yellow-200 via-amber-400 to-amber-600 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-yellow-200 via-amber-400 to-amber-500 bg-clip-text text-transparent underline decoration-amber-500/30 decoration-wavy">
               Hit The Jackpot.
             </span>{' '}
             Feast Tonight.
           </h1>
-          <p className="mt-2.5 text-stone-300 text-sm sm:text-base max-w-xl mx-auto drop-shadow">
-            Drag the mechanical arm to spin the Genre, Runtime, and Delivery Feast in high-suspense deceleration!
+          <p className="mt-3.5 text-stone-200 text-base sm:text-lg md:text-xl font-medium max-w-4xl mx-auto drop-shadow-md leading-relaxed">
+            Drag the mechanical arm to spin Cinema Genre, Runtime, and Delivery Feast in high-suspense deceleration—then choose between instant delivery or chef-crafted home recipes!
           </p>
+        </div>
+
+        {/* Live Vegas Cinephile Marquee Ticker */}
+        <div className="w-full max-w-6xl mx-auto mb-6 overflow-hidden rounded-2xl bg-stone-950/90 border border-amber-500/30 p-2.5 text-xs font-mono backdrop-blur-xl shadow-lg">
+          <div className="flex items-center gap-6 whitespace-nowrap overflow-x-auto no-scrollbar py-0.5 px-3 text-stone-300">
+            <span className="inline-flex items-center gap-2 text-amber-400 font-bold flex-shrink-0">
+              <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
+              LIVE CASINO FEED:
+            </span>
+            <span className="text-stone-300 flex-shrink-0">
+              🎬 <strong>High Roller Hit:</strong> Into the Spider-Verse + Fiery Drunken Noodles
+            </span>
+            <span className="text-amber-500 flex-shrink-0">•</span>
+            <span className="text-stone-300 flex-shrink-0">
+              🍳 <strong>Chef Station:</strong> 8 Gourmet Cook-at-Home Recipes Unlocked
+            </span>
+            <span className="text-amber-500 flex-shrink-0">•</span>
+            <span className="text-stone-300 flex-shrink-0">
+              ⚡ <strong>192 Curated Combos:</strong> 100% Payout Rate / Zero House Edge
+            </span>
+            <span className="text-amber-500 flex-shrink-0">•</span>
+            <span className="text-stone-300 flex-shrink-0">
+              🍿 <strong>VIP Perks:</strong> Double Feature 2x &amp; Midnight Feast Dessert Boost
+            </span>
+          </div>
         </div>
 
         {/* Casino Vibe Stakes & Ambience Bar */}
@@ -319,7 +344,7 @@ export function App() {
 
       {/* Footer */}
       <footer className="w-full border-t border-white/10 py-8 mt-16 bg-stone-950/80 backdrop-blur-md text-center text-xs text-stone-500 relative z-10">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-10 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <span className="text-base">🎰</span>
             <span className="font-bold text-stone-300">The Movie & Munchies Oracle</span>

@@ -152,7 +152,12 @@ export const ResultCard: React.FC<ResultCardProps> = ({
       {/* Main Grid: Movie on Left, Food on Right */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
         <MovieCard movie={movie} onRespinMovie={onRespinMovie} />
-        <FoodCard food={food} thematicTieIn={thematicTieIn} onRespinFood={onRespinFood} />
+        <FoodCard
+          food={food}
+          thematicTieIn={thematicTieIn}
+          onRespinFood={onRespinFood}
+          soundEnabled={soundEnabled}
+        />
       </div>
 
       {/* Double Feature Companion Card (if Double Feature Stake active) */}

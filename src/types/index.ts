@@ -37,6 +37,33 @@ export interface Movie {
   recommendedFoodVibes?: FoodGenre[];
 }
 
+export interface RecipeIngredient {
+  item: string;
+  amount: string;
+  category?: string;
+}
+
+export interface RecipeInstruction {
+  step: number;
+  instruction: string;
+  tip?: string;
+}
+
+export interface Recipe {
+  dishName: string;
+  prepTime: string;
+  cookTime: string;
+  totalTime: string;
+  difficulty: 'Easy' | 'Medium' | 'Advanced';
+  servings: string;
+  calories?: string;
+  description: string;
+  ingredients: RecipeIngredient[];
+  instructions: RecipeInstruction[];
+  chefTips: string;
+  equipment: string[];
+}
+
 export interface FoodOption {
   id: string;
   genre: FoodGenre;
@@ -51,6 +78,7 @@ export interface FoodOption {
     tag?: string;
   }[];
   drinkPairing: string;
+  recipe?: Recipe;
 }
 
 export interface Restaurant {

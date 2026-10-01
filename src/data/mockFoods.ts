@@ -32,7 +32,36 @@ export const MOCK_FOODS: FoodOption[] = [
         tag: 'Sweet Finish'
       }
     ],
-    drinkPairing: 'San Pellegrino Blood Orange or a Bold Chianti'
+    drinkPairing: 'San Pellegrino Blood Orange or a Bold Chianti',
+    recipe: {
+      dishName: 'Cast Iron Hot Honey & Crispy Pepperoni Pizza',
+      prepTime: '15 mins',
+      cookTime: '12 mins',
+      totalTime: '27 mins',
+      difficulty: 'Easy',
+      servings: '2-3 cinephiles',
+      calories: '680 kcal/serving',
+      description: 'Achieve restaurant-quality blistered crust and crispy cup pepperoni right in your home cast-iron skillet without needing a wood-fired oven.',
+      equipment: ['10-inch or 12-inch Cast Iron Skillet', 'Rolling Pin or Hands', 'Pastry Brush'],
+      ingredients: [
+        { item: 'Store-bought or homemade pizza dough', amount: '1 lb (room temp)' },
+        { item: 'Whole milk low-moisture mozzarella', amount: '6 oz, freshly shredded' },
+        { item: 'Crushed San Marzano tomatoes', amount: '1/2 cup' },
+        { item: 'Cup-and-char pepperoni slices', amount: '20-25 slices' },
+        { item: 'Hot honey (Mike\'s or chili honey)', amount: '2 tbsp' },
+        { item: 'Fresh basil leaves & grated Pecorino', amount: 'Handful' },
+        { item: 'Extra virgin olive oil & flake sea salt', amount: '1 tbsp' }
+      ],
+      instructions: [
+        { step: 1, instruction: 'Preheat oven to 500°F (260°C). Generously coat a heavy cast-iron skillet with olive oil.' },
+        { step: 2, instruction: 'Press and stretch room-temperature dough into the bottom and up the sides of the skillet. Dock lightly with a fork.' },
+        { step: 3, instruction: 'Spoon crushed tomatoes evenly, layer freshly shredded mozzarella edge-to-edge, and distribute pepperoni generously.' },
+        { step: 4, instruction: 'Place skillet on the stovetop over medium-high heat for 3 minutes to jumpstart bottom crust browning.' },
+        { step: 5, instruction: 'Transfer skillet to the top rack of your oven and bake for 10-12 minutes until cheese bubbles and pepperoni edges char.' },
+        { step: 6, instruction: 'Remove from oven, drizzle immediately with hot honey, scatter fresh basil and pecorino, slice and feast!' }
+      ],
+      chefTips: 'Room temperature dough is essential—cold dough will resist stretching and spring back. Shred your own block mozzarella for supreme stretch!'
+    }
   },
   {
     id: 'food-mexican',
@@ -65,7 +94,35 @@ export const MOCK_FOODS: FoodOption[] = [
         tag: 'Sweet Crunch'
       }
     ],
-    drinkPairing: 'Ice-Cold Mexican Jarritos Lime or Topo Chico with Lime'
+    drinkPairing: 'Ice-Cold Mexican Jarritos Lime or Topo Chico with Lime',
+    recipe: {
+      dishName: 'Skillet Birria-Style Quesa-Tacos with Dipping Consomé',
+      prepTime: '20 mins',
+      cookTime: '20 mins',
+      totalTime: '40 mins',
+      difficulty: 'Medium',
+      servings: '3-4 people',
+      calories: '590 kcal/serving',
+      description: 'Crisp griddled corn tortillas infused in seasoned chili broth, stuffed with juicy shredded beef, melting Oaxaca cheese, and served with dipping consomé.',
+      equipment: ['Non-stick or Cast Iron Griddle', 'Tongs', 'Small Saucepan'],
+      ingredients: [
+        { item: 'Shredded braised beef chuck or barbacoa', amount: '1 lb' },
+        { item: 'Oaxaca cheese or Monterey Jack, shredded', amount: '2 cups' },
+        { item: 'Yellow corn tortillas', amount: '8-10 tortillas' },
+        { item: 'Rich beef bone broth + adobo chili paste', amount: '1.5 cups' },
+        { item: 'Fresh cilantro & diced white onion', amount: '1/2 cup each' },
+        { item: 'Fresh lime wedges & smoked paprika', amount: '2 limes' }
+      ],
+      instructions: [
+        { step: 1, instruction: 'In a saucepan, whisk beef broth with adobo paste, cumin, and oregano; simmer on low to create your dipping consomé.' },
+        { step: 2, instruction: 'Heat griddle or skillet over medium heat with a light sheen of oil.' },
+        { step: 3, instruction: 'Dip each corn tortilla into the warm top layer of chili consomé, then lay flat on the sizzling griddle.' },
+        { step: 4, instruction: 'Cover one half with shredded Oaxaca cheese, a hearty spoonful of warm beef, cilantro, and diced onion.' },
+        { step: 5, instruction: 'Fold the tortilla in half and press firmly. Fry for 2-3 minutes per side until deeply golden and shatteringly crisp.' },
+        { step: 6, instruction: 'Ladle hot consomé into ramekins, garnish with onion and cilantro, and dunk tacos directly before every bite.' }
+      ],
+      chefTips: 'Dunking the tortilla into the chili fat layer of the broth creates the signature red color and restaurant-level crispiness.'
+    }
   },
   {
     id: 'food-burgers',
@@ -98,7 +155,36 @@ export const MOCK_FOODS: FoodOption[] = [
         tag: 'Decadent'
       }
     ],
-    drinkPairing: 'Classic Cherry Cola or Handcrafted Craft Root Beer'
+    drinkPairing: 'Classic Cherry Cola or Handcrafted Craft Root Beer',
+    recipe: {
+      dishName: 'Double Truffle Butter Smashburgers & Crispy Spiced Fries',
+      prepTime: '15 mins',
+      cookTime: '15 mins',
+      totalTime: '30 mins',
+      difficulty: 'Easy',
+      servings: '2 hearty servings',
+      calories: '820 kcal/serving',
+      description: 'Lacy-edged, crispy griddled beef patties layered with gooey American cheese, caramelized onions, and black truffle garlic aioli on toasted brioche.',
+      equipment: ['Heavy Flat Griddle or Cast Iron', 'Heavy Burger Press or Flat Spatula', 'Parchment Paper Squares'],
+      ingredients: [
+        { item: '80/20 Ground chuck beef (chilled)', amount: '1 lb, divided into four 4oz balls' },
+        { item: 'American cheese or sharp cheddar slices', amount: '4 thick slices' },
+        { item: 'Brioche burger buns', amount: '2 buns, split' },
+        { item: 'Truffle garlic aioli (mayo + garlic + truffle oil)', amount: '3 tbsp' },
+        { item: 'Thinly shaved sweet onions', amount: '1 small onion' },
+        { item: 'Kosher salt & coarse black pepper', amount: 'Generous pinch' },
+        { item: 'Crispy shoestring fries (air-fried or baked)', amount: '1 bag' }
+      ],
+      instructions: [
+        { step: 1, instruction: 'Preheat dry cast-iron skillet on high heat until smoking hot. Lightly butter and toast brioche buns until golden.' },
+        { step: 2, instruction: 'Place chilled beef balls on the dry smoking hot griddle. Top each ball with thinly shaved sweet onions.' },
+        { step: 3, instruction: 'Place parchment paper over each ball and SMASH down hard with a heavy press until wafer thin with lacy edges.' },
+        { step: 4, instruction: 'Season aggressively with salt and black pepper. Sear undisturbed for 2 minutes until dark caramelized crust forms.' },
+        { step: 5, instruction: 'Scrape vigorously to flip, keeping all the browned crust. Immediately crown each patty with cheese. Stack patties in pairs.' },
+        { step: 6, instruction: 'Spread truffle aioli on both bun halves, rest double-stacked patties on bottom bun, close, and serve with hot salted fries.' }
+      ],
+      chefTips: 'Do not grease the pan beforehand! The dry hot steel allows the beef proteins to adhere and create the coveted Maillard reaction crust.'
+    }
   },
   {
     id: 'food-sushi',
@@ -131,7 +217,36 @@ export const MOCK_FOODS: FoodOption[] = [
         tag: 'Snack Essential'
       }
     ],
-    drinkPairing: 'Sparkling Yuzu Soda or Iced Genmaicha Green Tea'
+    drinkPairing: 'Sparkling Yuzu Soda or Iced Genmaicha Green Tea',
+    recipe: {
+      dishName: 'Spicy Salmon Crispy Rice & Cyber Dragon Rolls',
+      prepTime: '20 mins',
+      cookTime: '15 mins',
+      totalTime: '35 mins',
+      difficulty: 'Medium',
+      servings: '2 people',
+      calories: '520 kcal/serving',
+      description: 'Golden pan-crisped sushi rice cubes topped with creamy sriracha sashimi-grade salmon, jalapeño, sweet unagi drizzle, and toasted sesame.',
+      equipment: ['Non-Stick Frying Pan', 'Sharp Chef\'s Knife', 'Plastic Wrap & Square Container'],
+      ingredients: [
+        { item: 'Seasoned sushi rice (cooked short-grain with rice vinegar & sugar)', amount: '2 cups cooked' },
+        { item: 'Sashimi-grade salmon or tuna, finely diced', amount: '8 oz' },
+        { item: 'Japanese Kewpie mayonnaise & sriracha', amount: '2 tbsp mayo + 1 tsp sriracha' },
+        { item: 'Sesame oil & neutral oil for frying', amount: '2 tbsp' },
+        { item: 'Serrano or jalapeño pepper, thinly sliced', amount: '1 pepper' },
+        { item: 'Sweet eel/unagi sauce or teriyaki glaze', amount: '2 tbsp' },
+        { item: 'Nori seaweed sheets', amount: '2 sheets, cut into snack strips' }
+      ],
+      instructions: [
+        { step: 1, instruction: 'Pack warm seasoned sushi rice tightly into a plastic-lined square dish. Chill in the freezer for 20 minutes to firm up.' },
+        { step: 2, instruction: 'In a bowl, gently fold diced salmon with Kewpie mayo, sriracha, a drop of sesame oil, and scallions.' },
+        { step: 3, instruction: 'Turn rice block onto cutting board. Using a wet knife, slice into bite-sized rectangles.' },
+        { step: 4, instruction: 'Heat 1/4 inch of oil in a skillet over medium-high heat. Fry rice blocks for 3-4 minutes per side until shatteringly golden crisp.' },
+        { step: 5, instruction: 'Drain crispy rice on paper towels. Spoon spicy salmon tartar onto each golden cake.' },
+        { step: 6, instruction: 'Garnish with a serrano pepper round, drizzle sweet unagi glaze, and sprinkle toasted sesame seeds.' }
+      ],
+      chefTips: 'Chilling the rice before cutting is the golden secret—it prevents the grains from falling apart when they hit the hot oil!'
+    }
   },
   {
     id: 'food-thai',
@@ -164,7 +279,36 @@ export const MOCK_FOODS: FoodOption[] = [
         tag: 'Iconic Dessert'
       }
     ],
-    drinkPairing: 'Sweet Cream Thai Iced Tea or Lychee Sparkler'
+    drinkPairing: 'Sweet Cream Thai Iced Tea or Lychee Sparkler',
+    recipe: {
+      dishName: 'Wok-Seared Pad Kee Mao (Fiery Drunken Noodles)',
+      prepTime: '15 mins',
+      cookTime: '10 mins',
+      totalTime: '25 mins',
+      difficulty: 'Easy',
+      servings: '2-3 servings',
+      calories: '610 kcal/serving',
+      description: 'Chewy wide rice noodles charred in high-heat wok sauce with tender chicken, sweet Thai holy basil, bird\'s eye chilies, and crisp vegetables.',
+      equipment: ['Large Wok or Deep Cast Iron Skillet', 'Spatula'],
+      ingredients: [
+        { item: 'Fresh wide flat rice noodles (Sen Yai) or dried pad thai noodles', amount: '12 oz' },
+        { item: 'Boneless chicken breast or thighs, thinly sliced', amount: '8 oz' },
+        { item: 'Thai holy basil or Italian sweet basil', amount: '1.5 cups fresh leaves' },
+        { item: 'Garlic cloves & Thai bird\'s eye chilies, pounded together', amount: '5 cloves + 2-4 chilies' },
+        { item: 'Sauce: Oyster sauce, dark sweet soy sauce, fish sauce, sugar', amount: '2 tbsp oyster, 1 tbsp sweet soy, 1 tbsp fish sauce' },
+        { item: 'Red bell pepper & baby corn, sliced', amount: '1 cup' },
+        { item: 'High-heat cooking oil', amount: '2 tbsp' }
+      ],
+      instructions: [
+        { step: 1, instruction: 'Whisk the sauce ingredients in a small bowl. Separate wide rice noodles so they don\'t stick.' },
+        { step: 2, instruction: 'Heat wok on high until smoking. Add oil, swirl, and drop pounded garlic and chilies; stir-fry for 20 seconds until fragrant.' },
+        { step: 3, instruction: 'Toss in sliced chicken, searing for 2-3 minutes until lightly browned.' },
+        { step: 4, instruction: 'Add bell peppers and baby corn; cook for 1 minute.' },
+        { step: 5, instruction: 'Dump in rice noodles and pour the savory sauce directly over noodles. Toss vigorously on max heat for 2 minutes to let noodles char and absorb wok smoky flavor (wok hei).' },
+        { step: 6, instruction: 'Turn off heat, dump in fresh basil leaves, and toss for 15 seconds until wilted. Serve piping hot with lime wedges!' }
+      ],
+      chefTips: 'Wok must be smoking hot before starting. Dark sweet soy sauce gives the noodles their deep caramelized amber glow.'
+    }
   },
   {
     id: 'food-comfort-junk',
@@ -197,7 +341,36 @@ export const MOCK_FOODS: FoodOption[] = [
         tag: 'Heavenly'
       }
     ],
-    drinkPairing: 'Frothy Milkshake or Ice Cold Dr Pepper'
+    drinkPairing: 'Frothy Milkshake or Ice Cold Dr Pepper',
+    recipe: {
+      dishName: 'Skillet Smoked Gouda Mac & Cheese with Bacon Herb Crust',
+      prepTime: '15 mins',
+      cookTime: '20 mins',
+      totalTime: '35 mins',
+      difficulty: 'Easy',
+      servings: '4 hungry snackers',
+      calories: '750 kcal/serving',
+      description: 'Cavatappi spirals bathed in a velvety four-cheese roux with crisp bacon crumbles and buttered garlic panko crust.',
+      equipment: ['Large Pot', 'Oven-Safe Skillet or Baking Dish', 'Whisk'],
+      ingredients: [
+        { item: 'Cavatappi or elbow macaroni', amount: '12 oz' },
+        { item: 'Smoked gouda & sharp white cheddar, shredded', amount: '1.5 cups each' },
+        { item: 'Whole milk & heavy cream', amount: '1.5 cups milk + 1/2 cup cream' },
+        { item: 'Unsalted butter & all-purpose flour', amount: '3 tbsp each' },
+        { item: 'Crispy applewood bacon crumbles', amount: '6 strips cooked' },
+        { item: 'Panko breadcrumbs tossed in melted butter', amount: '1/2 cup' },
+        { item: 'Dijon mustard, garlic powder, pinch of cayenne', amount: '1 tsp Dijon, 1/2 tsp each' }
+      ],
+      instructions: [
+        { step: 1, instruction: 'Boil pasta in heavily salted water until 1 minute shy of al dente; drain and set aside.' },
+        { step: 2, instruction: 'In skillet over medium heat, melt butter and whisk in flour for 1 minute to form a golden roux.' },
+        { step: 3, instruction: 'Slowly stream in warm milk and cream, whisking continuously until smooth and bubbling gently.' },
+        { step: 4, instruction: 'Take pan off the heat! Whisk in Dijon, garlic powder, cayenne, then fold in shredded cheeses in handfuls until silky smooth.' },
+        { step: 5, instruction: 'Fold cooked pasta and half the bacon into the cheese sauce. Crown with buttered panko and remaining bacon.' },
+        { step: 6, instruction: 'Broil on HIGH for 3-4 minutes until panko is deeply golden and cheese bubbles with crispy edges.' }
+      ],
+      chefTips: 'Always remove the pan from direct heat before melting the cheese. High direct heat breaks the emulsion and makes sauce grainy!'
+    }
   },
   {
     id: 'food-indian',
@@ -229,7 +402,37 @@ export const MOCK_FOODS: FoodOption[] = [
         tag: 'Appetizer Gem'
       }
     ],
-    drinkPairing: 'Chilled Mango Lassi with crushed cardamom'
+    drinkPairing: 'Chilled Mango Lassi with crushed cardamom',
+    recipe: {
+      dishName: 'Velvet Restaurant Butter Chicken & Garlic Naan',
+      prepTime: '20 mins',
+      cookTime: '25 mins',
+      totalTime: '45 mins',
+      difficulty: 'Medium',
+      servings: '3-4 servings',
+      calories: '640 kcal/serving',
+      description: 'Tender yogurt-marinated spiced chicken simmered in a luscious tomato-butter gravy scented with kasuri methi (fenugreek) and garam masala.',
+      equipment: ['Heavy Dutch Oven or Deep Pan', 'Blender or Immersion Blender', 'Tongs'],
+      ingredients: [
+        { item: 'Boneless chicken thighs, cut into bite-sized chunks', amount: '1.5 lbs' },
+        { item: 'Greek yogurt, ginger-garlic paste, chili, lemon juice', amount: '1/2 cup yogurt + 1 tbsp marinade mix' },
+        { item: 'Canned San Marzano whole peeled tomatoes or puree', amount: '14 oz' },
+        { item: 'Heavy whipping cream', amount: '1/2 cup' },
+        { item: 'Butter (cold, cubed)', amount: '4 tbsp' },
+        { item: 'Kasuri methi (dried fenugreek leaves), crushed', amount: '1 tbsp' },
+        { item: 'Garam masala, Kashmiri chili powder, sugar', amount: '1 tsp each' },
+        { item: 'Garlic naan breads', amount: '4 pieces, warmed with ghee' }
+      ],
+      instructions: [
+        { step: 1, instruction: 'Marinate chicken chunks in yogurt, ginger-garlic paste, Kashmiri chili, and lemon juice for at least 15 minutes.' },
+        { step: 2, instruction: 'Sear marinated chicken in a screaming hot skillet for 5-6 minutes until charred on edges; set aside.' },
+        { step: 3, instruction: 'In a pot, simmer tomatoes, ginger, and garlic for 10 minutes, then blend until silky smooth.' },
+        { step: 4, instruction: 'Return sauce to pot. Stir in garam masala, chili powder, salt, and a pinch of sugar to balance tomato acidity.' },
+        { step: 5, instruction: 'Add seared chicken, reduce heat to low, and stir in cold butter cubes and heavy cream until velvety.' },
+        { step: 6, instruction: 'Crush dried kasuri methi between your palms into the curry for that signature restaurant aroma. Serve with warm garlic naan!' }
+      ],
+      chefTips: 'Crushing Kasuri Methi (fenugreek leaves) between your palms at the very end is the single non-negotiable secret to authentic butter chicken flavor.'
+    }
   },
   {
     id: 'food-bbq',
@@ -261,7 +464,35 @@ export const MOCK_FOODS: FoodOption[] = [
         tag: 'Southern Classic'
       }
     ],
-    drinkPairing: 'Southern Sweet Tea with Lemon or Crisp Craft IPA'
+    drinkPairing: 'Southern Sweet Tea with Lemon or Crisp Craft IPA',
+    recipe: {
+      dishName: 'Crispy Hot Honey Glazed Jumbo Wings & Skillet Cornbread',
+      prepTime: '15 mins',
+      cookTime: '25 mins',
+      totalTime: '40 mins',
+      difficulty: 'Easy',
+      servings: '3-4 movie fans',
+      calories: '690 kcal/serving',
+      description: 'Extra-crunchy jumbo chicken wings tossed in a warm honey-chili glaze with freshly cracked coarse pepper and cool ranch dip.',
+      equipment: ['Air Fryer or Baking Sheet with Wire Rack', 'Tossing Bowl', 'Small Saucepan'],
+      ingredients: [
+        { item: 'Jumbo chicken wings (flats & drumettes)', amount: '2 lbs, patted bone-dry' },
+        { item: 'Baking powder (aluminum-free) & cornstarch', amount: '1 tbsp each (for extreme crisp)' },
+        { item: 'Smoked paprika, garlic powder, onion powder, salt', amount: '1 tsp each' },
+        { item: 'Pure clover honey + cayenne hot sauce', amount: '1/3 cup honey + 3 tbsp hot sauce' },
+        { item: 'Butter & apple cider vinegar', amount: '2 tbsp butter + 1 tsp vinegar' },
+        { item: 'Freshly cracked black pepper & chives', amount: '1 tbsp coarse pepper' }
+      ],
+      instructions: [
+        { step: 1, instruction: 'Pat chicken wings thoroughly dry with paper towels. Toss with baking powder, cornstarch, salt, garlic powder, and paprika.' },
+        { step: 2, instruction: 'Air Fryer: Cook at 380°F (193°C) for 18 minutes, shaking basket halfway. Crank heat to 400°F (204°C) for final 5 minutes for blistered crunch.' },
+        { step: 3, instruction: 'Oven alternative: Bake on a wire rack at 425°F (218°C) for 40 minutes until deeply golden.' },
+        { step: 4, instruction: 'While wings cook, simmer honey, hot sauce, butter, and apple cider vinegar in a saucepan for 3 minutes until glossy.' },
+        { step: 5, instruction: 'Transfer sizzling wings into a large metal bowl, pour warm glaze over them, and toss vigorously until gleaming.' },
+        { step: 6, instruction: 'Crown with cracked black pepper and chopped chives. Serve immediately with celery sticks and buttermilk ranch!' }
+      ],
+      chefTips: 'Tossing raw wings with baking powder changes skin pH, evaporating moisture to create blistered restaurant crunch without deep frying!'
+    }
   }
 ];
 

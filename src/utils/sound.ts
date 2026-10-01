@@ -24,26 +24,35 @@ function getAudioContext(): AudioContext | null {
 }
 
 // ==========================================
-// 1. UPBEAT CASINO GROOVE SYNTHESIZER
-// 124 BPM Upbeat Nu-Disco / Vegas Synth Groove
+// 1. ULTRA-FUN VEGAS DISCO-FUNK SYNTHESIZER
+// 124 BPM Upbeat, bouncy groove with slap bass, snare claps, and arcade lead hooks
 // ==========================================
 const BPM = 124;
 const STEP_TIME = (60 / BPM) / 4; // 16th note in seconds (~0.12s)
 
-// Bassline notes (C3, E3, G3, A2, F2, G2)
+// Funky slap bassline with syncopated octave bounces (in Hz)
+// C2=65.4, C3=130.8, Eb2=77.8, F2=87.3, F3=174.6, G2=98.0, G3=196.0, Bb2=116.5, A1=55.0, A2=110.0
 const BASS_NOTES = [
-  130.81, 0, 130.81, 0, 164.81, 0, 196.00, 130.81, // Bar 1 (C)
-  174.61, 0, 174.61, 0, 196.00, 0, 130.81, 146.83, // Bar 2 (F -> G)
-  110.00, 0, 110.00, 0, 130.81, 0, 164.81, 110.00, // Bar 3 (Am)
-  174.61, 0, 196.00, 0, 220.00, 196.00, 174.61, 196.00 // Bar 4 (F -> G)
+  65.4, 0, 130.8, 65.4, 0, 77.8, 98.0, 130.8,    // Bar 1: C funk bounce
+  87.3, 0, 174.6, 87.3, 98.0, 0, 196.0, 116.5,    // Bar 2: F -> G slap
+  55.0, 0, 110.0, 55.0, 65.4, 0, 130.8, 98.0,     // Bar 3: Am groove
+  87.3, 87.3, 98.0, 0, 116.5, 130.8, 146.8, 196.0 // Bar 4: Walking fill
 ];
 
-// Synth Chords (Cmaj7, Fmaj7, Am7, Gsus4)
+// Synth Chords (Cmaj9, Fadd9, Am7, G7sus4)
 const CHORD_PROGRESSION = [
-  [261.63, 329.63, 392.00, 493.88], // Cmaj7
-  [349.23, 440.00, 523.25, 659.25], // Fmaj7
-  [220.00, 261.63, 329.63, 392.00], // Am7
-  [392.00, 440.00, 523.25, 587.33], // Gsus4
+  [261.63, 329.63, 392.00, 493.88, 587.33], // Cmaj9
+  [349.23, 440.00, 523.25, 659.25, 698.46], // Fadd9
+  [220.00, 261.63, 329.63, 392.00, 493.88], // Am9
+  [392.00, 440.00, 523.25, 587.33, 698.46], // G9sus4
+];
+
+// Playful, catchy arcade synth melody lead notes (pentatonic hooks)
+const LEAD_NOTES: (number | null)[] = [
+  null, null, 523.25, 659.25, null, 783.99, null, 1046.5,  // Bar 1 spark
+  null, 783.99, null, 659.25, 587.33, null, 523.25, null, // Bar 2 answer
+  null, null, 440.00, 523.25, null, 659.25, null, 880.00,  // Bar 3 run
+  1046.5, null, 880.00, 783.99, null, 1046.5, 1174.66, 1318.51 // Bar 4 triumph
 ];
 
 function playHiHat(ctx: AudioContext, time: number, open = false) {
@@ -52,13 +61,13 @@ function playHiHat(ctx: AudioContext, time: number, open = false) {
   const filter = ctx.createBiquadFilter();
 
   osc.type = 'sawtooth';
-  osc.frequency.setValueAtTime(open ? 8000 : 10000, time);
+  osc.frequency.setValueAtTime(open ? 8500 : 11000, time);
 
   filter.type = 'highpass';
-  filter.frequency.setValueAtTime(7000, time);
+  filter.frequency.setValueAtTime(7500, time);
 
-  const dur = open ? 0.08 : 0.03;
-  gain.gain.setValueAtTime(0.04, time);
+  const dur = open ? 0.09 : 0.035;
+  gain.gain.setValueAtTime(open ? 0.05 : 0.035, time);
   gain.gain.exponentialRampToValueAtTime(0.0001, time + dur);
 
   osc.connect(filter);
@@ -74,17 +83,58 @@ function playKick(ctx: AudioContext, time: number) {
   const gain = ctx.createGain();
 
   osc.type = 'sine';
-  osc.frequency.setValueAtTime(140, time);
-  osc.frequency.exponentialRampToValueAtTime(38, time + 0.09);
+  osc.frequency.setValueAtTime(155, time);
+  osc.frequency.exponentialRampToValueAtTime(36, time + 0.1);
 
-  gain.gain.setValueAtTime(0.2, time);
-  gain.gain.exponentialRampToValueAtTime(0.001, time + 0.12);
+  gain.gain.setValueAtTime(0.24, time);
+  gain.gain.exponentialRampToValueAtTime(0.001, time + 0.14);
 
   osc.connect(gain);
   if (musicMasterGain) gain.connect(musicMasterGain);
 
   osc.start(time);
-  osc.stop(time + 0.13);
+  osc.stop(time + 0.15);
+}
+
+// Snappy Snare / Hand Clap on beats 2 and 4 (Disco-Funk bounce!)
+function playSnareClap(ctx: AudioContext, time: number) {
+  // Body tone
+  const toneOsc = ctx.createOscillator();
+  const toneGain = ctx.createGain();
+  toneOsc.type = 'triangle';
+  toneOsc.frequency.setValueAtTime(220, time);
+  toneOsc.frequency.exponentialRampToValueAtTime(80, time + 0.07);
+
+  toneGain.gain.setValueAtTime(0.12, time);
+  toneGain.gain.exponentialRampToValueAtTime(0.001, time + 0.08);
+
+  toneOsc.connect(toneGain);
+  if (musicMasterGain) toneGain.connect(musicMasterGain);
+
+  toneOsc.start(time);
+  toneOsc.stop(time + 0.09);
+
+  // Snappy noise clap crack
+  const noiseOsc = ctx.createOscillator();
+  const noiseGain = ctx.createGain();
+  const noiseFilter = ctx.createBiquadFilter();
+
+  noiseOsc.type = 'sawtooth';
+  noiseOsc.frequency.setValueAtTime(2400, time);
+
+  noiseFilter.type = 'bandpass';
+  noiseFilter.frequency.setValueAtTime(1800, time);
+  noiseFilter.Q.setValueAtTime(1.8, time);
+
+  noiseGain.gain.setValueAtTime(0.14, time);
+  noiseGain.gain.exponentialRampToValueAtTime(0.001, time + 0.11);
+
+  noiseOsc.connect(noiseFilter);
+  noiseFilter.connect(noiseGain);
+  if (musicMasterGain) noiseGain.connect(musicMasterGain);
+
+  noiseOsc.start(time);
+  noiseOsc.stop(time + 0.12);
 }
 
 function playBass(ctx: AudioContext, freq: number, time: number) {
@@ -97,11 +147,12 @@ function playBass(ctx: AudioContext, freq: number, time: number) {
   osc.frequency.setValueAtTime(freq, time);
 
   filter.type = 'lowpass';
-  filter.frequency.setValueAtTime(800, time);
-  filter.frequency.exponentialRampToValueAtTime(200, time + 0.15);
+  filter.frequency.setValueAtTime(950, time);
+  filter.frequency.exponentialRampToValueAtTime(180, time + 0.16);
 
-  gain.gain.setValueAtTime(0.12, time);
-  gain.gain.exponentialRampToValueAtTime(0.001, time + 0.18);
+  // Slap pop envelope
+  gain.gain.setValueAtTime(0.15, time);
+  gain.gain.exponentialRampToValueAtTime(0.001, time + 0.19);
 
   osc.connect(filter);
   filter.connect(gain);
@@ -121,18 +172,41 @@ function playStab(ctx: AudioContext, notes: number[], time: number) {
     osc.frequency.setValueAtTime(freq, time);
 
     filter.type = 'bandpass';
-    filter.frequency.setValueAtTime(1200, time);
+    filter.frequency.setValueAtTime(1400, time);
 
-    gain.gain.setValueAtTime(0.035, time);
-    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.18);
+    gain.gain.setValueAtTime(0.038, time);
+    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.16);
 
     osc.connect(filter);
     filter.connect(gain);
     if (musicMasterGain) gain.connect(musicMasterGain);
 
     osc.start(time);
-    osc.stop(time + 0.2);
+    osc.stop(time + 0.18);
   });
+}
+
+function playLead(ctx: AudioContext, freq: number, time: number) {
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  const filter = ctx.createBiquadFilter();
+
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(freq, time);
+
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(3200, time);
+  filter.frequency.exponentialRampToValueAtTime(800, time + 0.18);
+
+  gain.gain.setValueAtTime(0.045, time);
+  gain.gain.exponentialRampToValueAtTime(0.001, time + 0.18);
+
+  osc.connect(filter);
+  filter.connect(gain);
+  if (musicMasterGain) gain.connect(musicMasterGain);
+
+  osc.start(time);
+  osc.stop(time + 0.2);
 }
 
 export function toggleCasinoAmbience(enabled: boolean) {
@@ -153,10 +227,10 @@ export function toggleCasinoAmbience(enabled: boolean) {
 
   if (isMusicPlaying) return;
 
-  // Master Gain for Upbeat Music
+  // Master Gain for Upbeat Vegas Music
   musicMasterGain = ctx.createGain();
   musicMasterGain.gain.setValueAtTime(0.0001, ctx.currentTime);
-  musicMasterGain.gain.linearRampToValueAtTime(0.18, ctx.currentTime + 0.5);
+  musicMasterGain.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 0.4);
   musicMasterGain.connect(ctx.destination);
 
   isMusicPlaying = true;
@@ -167,32 +241,97 @@ export function toggleCasinoAmbience(enabled: boolean) {
     if (!ctx || !isMusicPlaying) return;
 
     while (nextStepTime < ctx.currentTime + 0.25) {
-      const step16 = currentStep % 32;
-      const barIndex = Math.floor(step16 / 8);
+      const step32 = currentStep % 32;
+      const barIndex = Math.floor(step32 / 8);
 
-      // Kick drum on quarter beats (steps 0, 4, 8, 12, etc.)
-      if (step16 % 4 === 0) {
+      // 1. Kick drum on 1, 2, 3, 4 (every 4 steps: 0, 4, 8, 12...)
+      if (step32 % 4 === 0) {
         playKick(ctx, nextStepTime);
       }
 
-      // Upbeat Hi-hats on off-beats
-      if (step16 % 2 === 1) {
-        playHiHat(ctx, nextStepTime, step16 % 4 === 2);
+      // 2. Snappy Snare Clap on beats 2 & 4 (steps 4, 12, 20, 28)
+      if (step32 % 8 === 4) {
+        playSnareClap(ctx, nextStepTime);
       }
 
-      // Funky Bassline
-      const bassFreq = BASS_NOTES[step16];
+      // 3. Upbeat Hi-hats with disco swing
+      if (step32 % 2 === 1) {
+        playHiHat(ctx, nextStepTime, step32 % 4 === 3);
+      }
+
+      // 4. Slap Bassline with syncopated octave bounce
+      const bassFreq = BASS_NOTES[step32];
       playBass(ctx, bassFreq, nextStepTime);
 
-      // Upbeat Chord Stabs on upbeat 2 and 4
-      if (step16 % 8 === 2 || step16 % 8 === 6) {
+      // 5. Upbeat Chord Stabs on upbeat 16ths
+      if (step32 % 8 === 2 || step32 % 8 === 6) {
         playStab(ctx, CHORD_PROGRESSION[barIndex], nextStepTime);
+      }
+
+      // 6. Playful Arcade Lead Synth Hook
+      const leadNote = LEAD_NOTES[step32];
+      if (leadNote !== null) {
+        playLead(ctx, leadNote, nextStepTime);
       }
 
       nextStepTime += STEP_TIME;
       currentStep++;
     }
-  }, 40);
+  }, 35);
+}
+
+// ==========================================
+// INTERACTIVE UI SOUNDS (RECIPE & TABS)
+// ==========================================
+export function playRecipeCheckSound(enabled = true) {
+  if (!enabled) return;
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+
+    // Cheerful double chime
+    const notes = [880, 1320];
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime + i * 0.05);
+
+      gain.gain.setValueAtTime(0.08, ctx.currentTime + i * 0.05);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.05 + 0.12);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(ctx.currentTime + i * 0.05);
+      osc.stop(ctx.currentTime + i * 0.05 + 0.13);
+    });
+  } catch {
+    // Ignore
+  }
+}
+
+export function playTabSwitchSound(enabled = true) {
+  if (!enabled) return;
+  try {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(440, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(660, ctx.currentTime + 0.06);
+
+    gain.gain.setValueAtTime(0.06, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.07);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.07);
+  } catch {
+    // Ignore
+  }
 }
 
 // ==========================================
