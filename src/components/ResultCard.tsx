@@ -3,10 +3,11 @@ import { Movie, FoodOption, Restaurant } from '../types';
 import { MovieCard } from './MovieCard';
 import { FoodCard } from './FoodCard';
 import { LocalSpots } from './LocalSpots';
-import { Lock, Check, Share2, Sparkles, RefreshCw, Film, Cookie } from 'lucide-react';
+import { Lock, Check, Share2, Sparkles, RefreshCw, Film, Cookie, Database } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { playSuccessSound } from '../utils/sound';
 import { VibeStakeTier } from './Casino/VibeStakesBar';
+import { DatabaseWriteConfirmation } from '../services/db';
 
 interface ResultCardProps {
   movie: Movie;
@@ -17,6 +18,7 @@ interface ResultCardProps {
   restaurants: Restaurant[];
   location: string;
   isLocked: boolean;
+  dbConfirmation?: DatabaseWriteConfirmation | null;
   onLockIn: () => void;
   onRespinMovie: () => void;
   onRespinFood: () => void;
@@ -33,6 +35,7 @@ export const ResultCard: React.FC<ResultCardProps> = ({
   restaurants,
   location,
   isLocked,
+  dbConfirmation,
   onLockIn,
   onRespinMovie,
   onRespinFood,
@@ -134,20 +137,57 @@ export const ResultCard: React.FC<ResultCardProps> = ({
             <span>Shuffle Combo</span>
           </button>
 
-          {/* Lock It In Button */}
+          {/* Lock It In / Save to Database Button */}
           <button
             onClick={handleLockInWithCelebration}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm tracking-wide transition-all duration-200 shadow-lg ${
               isLocked
-                ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
+                ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.4)]'
                 : 'bg-gradient-to-r from-amber-400 to-yellow-500 hover:brightness-110 text-stone-950 shadow-[0_0_20px_rgba(245,158,11,0.5)]'
             }`}
           >
-            <Lock className="w-4 h-4" />
-            <span>{isLocked ? 'Locked in History!' : 'Lock It In'}</span>
+            {isLocked ? (
+              <>
+                <Database className="w-4 h-4 text-white animate-pulse" />
+                <span>Saved to movie-munchies-db</span>
+              </>
+            ) : (
+              <>
+                <Lock className="w-4 h-4" />
+                <span>Save to Database</span>
+              </>
+            )}
           </button>
         </div>
       </div>
+
+      {/* Database Write Confirmation Alert */}
+      {dbConfirmation && (
+        <div className="mt-5 p-4 rounded-2xl bg-gradient-to-r from-emerald-950/90 via-stone-900/90 to-stone-950 border-2 border-emerald-500/70 shadow-[0_0_25px_rgba(16,185,129,0.35)] animate-fadeIn flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex-shrink-0">
+              <Database className="w-5 h-5 text-emerald-400 animate-pulse" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-white text-sm">
+                  Successfully Written to Database: <strong className="text-emerald-300 font-mono underline">{dbConfirmation.databaseName}</strong>
+                </span>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/25 text-emerald-300 border border-emerald-500/50 font-black">
+                  TRANSACTION CONFIRMED
+                </span>
+              </div>
+              <p className="text-stone-300 text-xs mt-1">
+                Film: <strong className="text-white">{dbConfirmation.movieTitle}</strong> • Category Set: <strong className="text-amber-300">{dbConfirmation.category}</strong> • Runtime Set: <strong className="text-cyan-300">{dbConfirmation.runtime}</strong>
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 self-end sm:self-center font-mono text-[11px] text-stone-400 bg-stone-950/70 px-3 py-1.5 rounded-xl border border-white/10 whitespace-nowrap">
+            <span>ID: #{dbConfirmation.recordId.slice(-6)}</span>
+            <span>• {dbConfirmation.timestamp}</span>
+          </div>
+        </div>
+      )}
 
       {/* Main Grid: Movie on Left, Food on Right */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">

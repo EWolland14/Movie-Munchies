@@ -1,6 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { SavedPairing } from '../types';
-import { X, Trash2, Calendar, MapPin, Film, RotateCcw } from 'lucide-react';
+import {
+  X,
+  Trash2,
+  Calendar,
+  Film,
+  RotateCcw,
+  Database,
+  Clock,
+  Tag,
+  Search,
+  CheckCircle,
+  ChefHat
+} from 'lucide-react';
+import { DB_NAME } from '../services/db';
 
 interface HistoryDrawerProps {
   isOpen: boolean;
@@ -19,73 +32,170 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
   onDeletePairing,
   onClearAll,
 }) => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedGenre, setSelectedGenre] = useState<string>('all');
+
   if (!isOpen) return null;
+
+  // Filter saved pairings
+  const filteredPairings = savedPairings.filter((item) => {
+    const matchesSearch =
+      searchQuery === '' ||
+      item.movie.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.movie.genres.some((g) => g.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      item.food.vibeTitle.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesGenre =
+      selectedGenre === 'all' || item.movie.genres.includes(selectedGenre as any);
+
+    return matchesSearch && matchesGenre;
+  });
+
+  // Extract unique genres across saved pairings
+  const uniqueGenres = Array.from(
+    new Set(savedPairings.flatMap((p) => p.movie.genres))
+  );
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity"
+        className="absolute inset-0 bg-black/80 backdrop-blur-md transition-opacity"
         onClick={onClose}
       />
 
       {/* Drawer Panel */}
-      <div className="absolute inset-y-0 right-0 max-w-full flex pl-10">
-        <div className="w-screen max-w-md bg-cinema-950 border-l border-white/10 shadow-2xl flex flex-col">
+      <div className="absolute inset-y-0 right-0 max-w-full flex pl-6 sm:pl-10">
+        <div className="w-screen max-w-lg bg-stone-950 border-l border-amber-500/30 shadow-2xl flex flex-col">
           
-          {/* Header */}
-          <div className="p-6 border-b border-white/10 flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <span className="text-xl">📜</span>
-              <div>
-                <h3 className="font-display font-bold text-lg text-white">
-                  Saved Movie Nights
-                </h3>
-                <p className="text-xs text-slate-400">
-                  {savedPairings.length} {savedPairings.length === 1 ? 'pairing' : 'pairings'} locked in
-                </p>
+          {/* Database Header */}
+          <div className="p-5 sm:p-6 border-b border-white/10 bg-stone-900/90 backdrop-blur-xl">
+            <div className="flex items-center justify-between gap-3 mb-2">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                  <Database className="w-5 h-5 text-amber-400" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-display font-black text-lg text-white tracking-tight">
+                      Historical Database
+                    </h3>
+                    <span className="inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-bold">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      ONLINE
+                    </span>
+                  </div>
+                  <p className="text-xs font-mono text-amber-300/80">
+                    Database: <strong className="text-amber-200">{DB_NAME}</strong>
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {savedPairings.length > 0 && (
+                  <button
+                    onClick={onClearAll}
+                    className="text-xs text-red-400 hover:text-red-300 px-2.5 py-1 rounded-lg hover:bg-red-500/10 border border-red-500/20 transition-colors font-medium"
+                    title="Clear all database records"
+                  >
+                    Purge DB
+                  </button>
+                )}
+                <button
+                  onClick={onClose}
+                  className="p-2 rounded-xl text-stone-400 hover:text-white hover:bg-white/10 transition-colors"
+                  aria-label="Close database viewer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              {savedPairings.length > 0 && (
-                <button
-                  onClick={onClearAll}
-                  className="text-xs text-red-400 hover:text-red-300 px-2 py-1 rounded hover:bg-red-500/10 transition-colors"
-                >
-                  Clear All
-                </button>
-              )}
-              <button
-                onClick={onClose}
-                className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
-                aria-label="Close saved pairings"
-              >
-                <X className="w-5 h-5" />
-              </button>
+            {/* Total Records Counter */}
+            <div className="flex items-center justify-between text-xs text-stone-400 pt-1">
+              <span>
+                Total Stored Combinations: <strong className="text-white">{savedPairings.length}</strong>
+              </span>
+              <span className="text-[11px] font-mono text-stone-500">
+                IndexedDB Persistent Storage
+              </span>
             </div>
+
+            {/* Search & Category Filter Controls */}
+            {savedPairings.length > 0 && (
+              <div className="mt-3.5 space-y-2">
+                <div className="relative">
+                  <Search className="w-3.5 h-3.5 text-stone-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    placeholder="Search movie title or category..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full bg-stone-950/80 border border-white/10 rounded-xl pl-8 pr-3 py-1.5 text-xs text-white placeholder-stone-500 focus:outline-none focus:border-amber-400/50"
+                  />
+                </div>
+
+                {uniqueGenres.length > 1 && (
+                  <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
+                    <button
+                      onClick={() => setSelectedGenre('all')}
+                      className={`px-2.5 py-1 rounded-lg text-[10px] font-bold whitespace-nowrap transition-all ${
+                        selectedGenre === 'all'
+                          ? 'bg-amber-400 text-stone-950'
+                          : 'bg-stone-950 text-stone-400 border border-white/5 hover:text-white'
+                      }`}
+                    >
+                      All Categories
+                    </button>
+                    {uniqueGenres.map((genre) => (
+                      <button
+                        key={genre}
+                        onClick={() => setSelectedGenre(genre)}
+                        className={`px-2.5 py-1 rounded-lg text-[10px] font-bold whitespace-nowrap transition-all ${
+                          selectedGenre === genre
+                            ? 'bg-amber-400 text-stone-950'
+                            : 'bg-stone-950 text-stone-400 border border-white/5 hover:text-white'
+                        }`}
+                      >
+                        {genre}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* List Content */}
-          <div className="flex-1 overflow-y-auto p-6 space-y-4">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
             {savedPairings.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-center p-8 text-slate-400 space-y-3">
-                <span className="text-5xl opacity-40">🍿</span>
-                <p className="font-bold text-slate-300">No locked-in nights yet</p>
-                <p className="text-xs text-slate-500 max-w-xs">
-                  Whenever you find a winning film & feast combo, hit <span className="text-cinema-gold font-semibold">"Lock It In"</span> to store it here.
+              <div className="h-full flex flex-col items-center justify-center text-center p-8 text-stone-400 space-y-3">
+                <div className="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-3xl mb-1">
+                  💾
+                </div>
+                <p className="font-bold text-stone-200 text-base">No database records yet</p>
+                <p className="text-xs text-stone-400 max-w-xs leading-relaxed">
+                  Whenever you find a winning film & feast combo, click <span className="text-amber-400 font-bold">"Lock It In"</span> to write it directly to the <span className="font-mono text-amber-300 font-semibold">{DB_NAME}</span> historical database.
                 </p>
               </div>
+            ) : filteredPairings.length === 0 ? (
+              <div className="text-center py-12 text-stone-500 text-xs">
+                No database records match your filter.
+              </div>
             ) : (
-              savedPairings.map((item) => (
+              filteredPairings.map((item) => (
                 <div
                   key={item.id}
-                  className="rounded-2xl bg-cinema-900/80 border border-white/10 p-4 transition-all hover:border-cinema-gold/40 group"
+                  className="rounded-2xl bg-stone-900/90 border border-white/10 p-4 transition-all hover:border-amber-400/40 shadow-lg space-y-3"
                 >
-                  {/* Top Metadata */}
-                  <div className="flex items-center justify-between text-[11px] text-slate-400 pb-2 mb-2 border-b border-white/5">
-                    <span className="flex items-center gap-1">
-                      <Calendar className="w-3 h-3 text-slate-500" />
+                  {/* Database Metadata Header */}
+                  <div className="flex items-center justify-between text-[11px] text-stone-400 pb-2 border-b border-white/5">
+                    <span className="flex items-center gap-1 font-mono text-emerald-400">
+                      <CheckCircle className="w-3 h-3 text-emerald-400" />
+                      Verified in {DB_NAME}
+                    </span>
+                    <span className="flex items-center gap-1 text-stone-400">
+                      <Calendar className="w-3 h-3 text-stone-500" />
                       {new Date(item.savedAt).toLocaleDateString(undefined, {
                         month: 'short',
                         day: 'numeric',
@@ -93,65 +203,94 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
                         minute: '2-digit'
                       })}
                     </span>
-                    <span className="flex items-center gap-1 text-slate-400">
-                      <MapPin className="w-3 h-3 text-cinema-crimson" />
-                      {item.location || 'Local Area'}
-                    </span>
                   </div>
 
-                  {/* Movie Info */}
-                  <div className="flex items-center gap-3 mb-2">
+                  {/* Individual Movie & Specs */}
+                  <div className="flex items-start gap-3">
                     <img
                       src={item.movie.posterUrl}
                       alt={item.movie.title}
-                      className="w-12 h-16 rounded-lg object-cover bg-cinema-800 flex-shrink-0 border border-white/10"
+                      className="w-14 h-20 rounded-xl object-cover bg-stone-950 flex-shrink-0 border border-white/10 shadow-md"
                     />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5">
-                        <Film className="w-3.5 h-3.5 text-cinema-crimson flex-shrink-0" />
+                        <Film className="w-3.5 h-3.5 text-red-400 flex-shrink-0" />
                         <h4 className="font-bold text-sm text-white truncate">
                           {item.movie.title}
                         </h4>
                       </div>
-                      <p className="text-xs text-slate-400 mt-0.5">
-                        {item.movie.year} • {item.movie.runtime}m • {item.movie.streamingPlatform}
-                      </p>
+                      
+                      {/* Movie Category Set */}
+                      <div className="flex flex-wrap items-center gap-1 mt-1.5">
+                        <Tag className="w-3 h-3 text-amber-400 flex-shrink-0" />
+                        {item.movie.genres.map((genre) => (
+                          <span
+                            key={genre}
+                            className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/15 text-amber-300 border border-amber-500/30"
+                          >
+                            {genre}
+                          </span>
+                        ))}
+                      </div>
+
+                      {/* Runtime Set & Platform */}
+                      <div className="flex items-center gap-2 text-xs text-stone-300 mt-1.5 font-medium">
+                        <span className="flex items-center gap-1 px-2 py-0.5 rounded bg-white/5 border border-white/10 text-[11px]">
+                          <Clock className="w-3 h-3 text-cyan-400" />
+                          <strong>Runtime:</strong> {item.movie.runtime}m ({item.movie.runtimeCategory})
+                        </span>
+                        <span className="text-[11px] text-stone-400">
+                          {item.movie.streamingPlatform}
+                        </span>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Food Info */}
-                  <div className="p-2.5 rounded-xl bg-cinema-850/80 border border-white/5 text-xs">
-                    <div className="font-semibold text-slate-200 flex items-center gap-1.5">
-                      <span>{item.food.emoji}</span>
-                      <span>{item.food.genre}</span>
-                      <span className="text-slate-500 font-normal">({item.food.vibeTitle})</span>
+                  {/* Food & Recipe Info */}
+                  <div className="p-3 rounded-xl bg-stone-950/80 border border-white/5 text-xs space-y-1">
+                    <div className="font-bold text-stone-200 flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <span>{item.food.emoji}</span>
+                        <span>{item.food.genre}: {item.food.vibeTitle}</span>
+                      </div>
+                      {item.food.recipe && (
+                        <span className="flex items-center gap-1 text-[10px] font-mono font-bold text-emerald-300 bg-emerald-950/80 px-2 py-0.5 rounded-full border border-emerald-500/30">
+                          <ChefHat className="w-3 h-3 text-emerald-400" />
+                          Recipe Stored
+                        </span>
+                      )}
                     </div>
-                    <p className="text-[11px] text-slate-400 mt-1 line-clamp-1 italic">
+                    <p className="text-[11px] text-stone-400 line-clamp-1 italic pt-0.5">
                       "{item.thematicTieIn}"
                     </p>
                   </div>
 
-                  {/* Item Actions */}
-                  <div className="flex items-center justify-between gap-2 mt-3 pt-2">
+                  {/* Actions & DB Key */}
+                  <div className="flex items-center justify-between gap-2 pt-1 border-t border-white/5">
                     <button
                       onClick={() => {
                         onSelectPairing(item);
                         onClose();
                       }}
-                      className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-cinema-gold/15 text-cinema-gold hover:bg-cinema-gold/25 transition-colors"
+                      className="flex items-center gap-1.5 text-xs font-bold px-3.5 py-1.5 rounded-xl bg-amber-400 text-stone-950 hover:bg-amber-300 transition-colors shadow-sm"
                     >
-                      <RotateCcw className="w-3 h-3" />
+                      <RotateCcw className="w-3.5 h-3.5" />
                       Load This Combo
                     </button>
 
-                    <button
-                      onClick={() => onDeletePairing(item.id)}
-                      className="p-1.5 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
-                      title="Delete from history"
-                      aria-label="Delete"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-mono text-stone-500 hidden sm:inline">
+                        ID: {item.id.slice(-6)}
+                      </span>
+                      <button
+                        onClick={() => onDeletePairing(item.id)}
+                        className="p-1.5 rounded-lg text-stone-500 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                        title="Delete from database"
+                        aria-label="Delete"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))

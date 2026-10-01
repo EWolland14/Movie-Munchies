@@ -11,6 +11,14 @@ import { MOCK_MOVIES } from './data/mockMovies';
 import { MOCK_FOODS, getThematicTieIn } from './data/mockFoods';
 import { getNearbyRestaurants } from './data/mockRestaurants';
 import { Compass, SlidersHorizontal, ChevronDown, ChevronUp } from 'lucide-react';
+import {
+  savePairingToDatabase,
+  getAllPairingsFromDatabase,
+  deletePairingFromDatabase,
+  clearAllPairingsFromDatabase,
+  DatabaseWriteConfirmation,
+  DB_NAME
+} from './services/db';
 
 const STORAGE_KEY_SAVED = 'movie_munchies_saved_pairings_v1';
 const STORAGE_KEY_SOUND = 'movie_munchies_sound_enabled';
@@ -32,6 +40,7 @@ export function App() {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [isLocked, setIsLocked] = useState<boolean>(false);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState<boolean>(false);
+  const [dbConfirmation, setDbConfirmation] = useState<DatabaseWriteConfirmation | null>(null);
 
   // Casino Vibe Stakes & Ambience state
   const [stakeTier, setStakeTier] = useState<VibeStakeTier>('casual');
@@ -127,6 +136,7 @@ export function App() {
     setThematicTieIn(tieIn);
     setRestaurants(spots);
     setIsLocked(false);
+    setDbConfirmation(null);
   };
 
   // Respin only the movie
@@ -142,6 +152,7 @@ export function App() {
     }
     setThematicTieIn(tieIn);
     setIsLocked(false);
+    setDbConfirmation(null);
   };
 
   // Respin only the food
@@ -156,10 +167,11 @@ export function App() {
     setThematicTieIn(tieIn);
     setRestaurants(spots);
     setIsLocked(false);
+    setDbConfirmation(null);
   };
 
-  // Lock In pairing to localStorage
-  const handleLockIn = () => {
+  // Lock In pairing & commit directly to movie-munchies-db
+  const handleLockIn = async () => {
     if (!currentMovie || !currentFood) return;
 
     const newSaved: SavedPairing = {
@@ -170,10 +182,15 @@ export function App() {
       food: currentFood,
       thematicTieIn,
       restaurants,
+      databaseName: DB_NAME,
+      stakeTier,
     };
 
-    setSavedPairings((prev) => [newSaved, ...prev]);
+    // Transactional write to movie-munchies-db
+    const confirmation = await savePairingToDatabase(newSaved);
+    setSavedPairings((prev) => [newSaved, ...prev.filter((p) => p.id !== newSaved.id)]);
     setIsLocked(true);
+    setDbConfirmation(confirmation);
   };
 
   // Load past combo from history drawer
@@ -184,21 +201,42 @@ export function App() {
     setRestaurants(pairing.restaurants || getNearbyRestaurants(pairing.food.genre, pairing.location));
     setCompanionMovie(null);
     setIsLocked(true);
+    setDbConfirmation({
+      success: true,
+      databaseName: DB_NAME,
+      recordId: pairing.id,
+      timestamp: new Date(pairing.savedAt).toLocaleTimeString(),
+      movieTitle: pairing.movie.title,
+      category: pairing.movie.genres.join(', '),
+      runtime: `${pairing.movie.runtime}m (${pairing.movie.runtimeCategory})`
+    });
   };
 
-  const handleDeleteSaved = (id: string) => {
+  const handleDeleteSaved = async (id: string) => {
+    await deletePairingFromDatabase(id);
     setSavedPairings((prev) => prev.filter((p) => p.id !== id));
   };
 
-  const handleClearAllSaved = () => {
-    if (window.confirm('Clear all saved pairings from your history?')) {
+  const handleClearAllSaved = async () => {
+    if (window.confirm(`Purge all records from database ${DB_NAME}?`)) {
+      await clearAllPairingsFromDatabase();
       setSavedPairings([]);
+      setDbConfirmation(null);
     }
   };
 
   const handleResetFilters = () => {
     setFilters(INITIAL_FILTERS);
   };
+
+  // Load records from movie-munchies-db on mount
+  useEffect(() => {
+    getAllPairingsFromDatabase().then((records) => {
+      if (records && records.length > 0) {
+        setSavedPairings(records);
+      }
+    }).catch((e) => console.warn('Could not read movie-munchies-db:', e));
+  }, []);
 
   // On initial mount, spin a great starting pair
   useEffect(() => {
@@ -332,6 +370,7 @@ export function App() {
               restaurants={restaurants}
               location={filters.location}
               isLocked={isLocked}
+              dbConfirmation={dbConfirmation}
               onLockIn={handleLockIn}
               onRespinMovie={handleRespinMovie}
               onRespinFood={handleRespinFood}

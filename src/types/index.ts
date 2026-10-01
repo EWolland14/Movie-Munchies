@@ -108,4 +108,6 @@ export interface SavedPairing {
   food: FoodOption;
   thematicTieIn: string;
   restaurants: Restaurant[];
+  databaseName?: string;
+  stakeTier?: string;
 }
