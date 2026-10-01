@@ -22,6 +22,7 @@ import {
 
 const STORAGE_KEY_SAVED = 'movie_munchies_saved_pairings_v1';
 const STORAGE_KEY_SOUND = 'movie_munchies_sound_enabled';
+const STORAGE_KEY_USER = 'movie_munchies_current_user';
 
 const INITIAL_FILTERS: FilterState = {
   runtime: 'any',
@@ -42,6 +43,24 @@ export function App() {
   const [showAdvancedFilters, setShowAdvancedFilters] = useState<boolean>(false);
   const [dbConfirmation, setDbConfirmation] = useState<DatabaseWriteConfirmation | null>(null);
 
+  // Multi-user profile state (User 1 vs User 2 vs custom)
+  const [currentUser, setCurrentUser] = useState<string>(() => {
+    try {
+      return localStorage.getItem(STORAGE_KEY_USER) || 'User 1';
+    } catch {
+      return 'User 1';
+    }
+  });
+
+  const handleSetUser = (user: string) => {
+    setCurrentUser(user);
+    try {
+      localStorage.setItem(STORAGE_KEY_USER, user);
+    } catch {
+      // Ignore
+    }
+  };
+
   // Casino Vibe Stakes & Ambience state
   const [stakeTier, setStakeTier] = useState<VibeStakeTier>('casual');
   const [ambienceEnabled, setAmbienceEnabled] = useState<boolean>(false);
@@ -56,7 +75,7 @@ export function App() {
     }
   });
 
-  // Saved Pairings in localStorage
+  // Saved Pairings in localStorage & movie-munchies-db
   const [savedPairings, setSavedPairings] = useState<SavedPairing[]>(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY_SAVED);
@@ -76,6 +95,7 @@ export function App() {
       console.error('Failed to save to localStorage:', e);
     }
   }, [savedPairings]);
+
 
   // Sync sound setting
   const toggleSound = () => {
@@ -184,6 +204,7 @@ export function App() {
       restaurants,
       databaseName: DB_NAME,
       stakeTier,
+      savedBy: currentUser,
     };
 
     // Transactional write to movie-munchies-db
@@ -208,7 +229,8 @@ export function App() {
       timestamp: new Date(pairing.savedAt).toLocaleTimeString(),
       movieTitle: pairing.movie.title,
       category: pairing.movie.genres.join(', '),
-      runtime: `${pairing.movie.runtime}m (${pairing.movie.runtimeCategory})`
+      runtime: `${pairing.movie.runtime}m (${pairing.movie.runtimeCategory})`,
+      savedBy: pairing.savedBy || 'User 1'
     });
   };
 
@@ -229,14 +251,30 @@ export function App() {
     setFilters(INITIAL_FILTERS);
   };
 
-  // Load records from movie-munchies-db on mount
+  // Live auto-sync with movie-munchies-db so both User 1 and User 2 see each other's saved movie nights in real-time
   useEffect(() => {
-    getAllPairingsFromDatabase().then((records) => {
-      if (records && records.length > 0) {
-        setSavedPairings(records);
+    let isMounted = true;
+
+    const syncRecords = async () => {
+      try {
+        const records = await getAllPairingsFromDatabase();
+        if (isMounted && records) {
+          setSavedPairings(records);
+        }
+      } catch (e) {
+        console.warn('Could not sync movie-munchies-db:', e);
       }
-    }).catch((e) => console.warn('Could not read movie-munchies-db:', e));
+    };
+
+    syncRecords();
+    const intervalId = setInterval(syncRecords, 4000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(intervalId);
+    };
   }, []);
+
 
   // On initial mount, spin a great starting pair
   useEffect(() => {
@@ -266,11 +304,14 @@ export function App() {
 
       {/* Navigation Header */}
       <Navbar
+        currentUser={currentUser}
+        onSelectUser={handleSetUser}
         savedCount={savedPairings.length}
         onOpenHistory={() => setIsHistoryOpen(true)}
         soundEnabled={soundEnabled}
         onToggleSound={toggleSound}
       />
+
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-10 py-6 sm:py-10 relative z-10">
@@ -400,10 +441,12 @@ export function App() {
         isOpen={isHistoryOpen}
         onClose={() => setIsHistoryOpen(false)}
         savedPairings={savedPairings}
+        currentUser={currentUser}
         onSelectPairing={handleSelectFromHistory}
         onDeletePairing={handleDeleteSaved}
         onClearAll={handleClearAllSaved}
       />
+
     </div>
   );
 }

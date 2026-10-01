@@ -11,7 +11,9 @@ import {
   Tag,
   Search,
   CheckCircle,
-  ChefHat
+  ChefHat,
+  Users,
+  UserCheck
 } from 'lucide-react';
 import { DB_NAME } from '../services/db';
 
@@ -19,6 +21,7 @@ interface HistoryDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   savedPairings: SavedPairing[];
+  currentUser?: string;
   onSelectPairing: (pairing: SavedPairing) => void;
   onDeletePairing: (id: string) => void;
   onClearAll: () => void;
@@ -28,33 +31,49 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
   isOpen,
   onClose,
   savedPairings,
+  currentUser = 'User 1',
   onSelectPairing,
   onDeletePairing,
   onClearAll,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGenre, setSelectedGenre] = useState<string>('all');
+  const [selectedUserFilter, setSelectedUserFilter] = useState<string>('all');
 
   if (!isOpen) return null;
 
+  // Extract unique users who have saved movies
+  const savedUsers = Array.from(
+    new Set(savedPairings.map((p) => p.savedBy || 'User 1'))
+  );
+  // Ensure User 1 and User 2 are in the list if relevant
+  ['User 1', 'User 2'].forEach((u) => {
+    if (!savedUsers.includes(u)) savedUsers.push(u);
+  });
+
   // Filter saved pairings
   const filteredPairings = savedPairings.filter((item) => {
+    const itemUser = item.savedBy || 'User 1';
+    const matchesUser = selectedUserFilter === 'all' || itemUser === selectedUserFilter;
+
     const matchesSearch =
       searchQuery === '' ||
       item.movie.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.movie.genres.some((g) => g.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      item.food.vibeTitle.toLowerCase().includes(searchQuery.toLowerCase());
+      item.food.vibeTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      itemUser.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesGenre =
       selectedGenre === 'all' || item.movie.genres.includes(selectedGenre as any);
 
-    return matchesSearch && matchesGenre;
+    return matchesUser && matchesSearch && matchesGenre;
   });
 
   // Extract unique genres across saved pairings
   const uniqueGenres = Array.from(
     new Set(savedPairings.flatMap((p) => p.movie.genres))
   );
+
 
   return (
     <div className="fixed inset-0 z-50 overflow-hidden">
@@ -135,6 +154,41 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
                   />
                 </div>
 
+                {/* User / Watch Together Filter Tabs */}
+                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
+                  <button
+                    onClick={() => setSelectedUserFilter('all')}
+                    className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold whitespace-nowrap transition-all ${
+                      selectedUserFilter === 'all'
+                        ? 'bg-amber-400 text-stone-950 shadow-sm'
+                        : 'bg-stone-950 text-stone-400 border border-white/5 hover:text-white'
+                    }`}
+                  >
+                    <Users className="w-3 h-3" />
+                    <span>All (Watch Together) ({savedPairings.length})</span>
+                  </button>
+                  {savedUsers.map((user) => {
+                    const userCount = savedPairings.filter((p) => (p.savedBy || 'User 1') === user).length;
+                    const isSelected = selectedUserFilter === user;
+                    const isCurrentUser = user === currentUser;
+                    return (
+                      <button
+                        key={user}
+                        onClick={() => setSelectedUserFilter(user)}
+                        className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold whitespace-nowrap transition-all ${
+                          isSelected
+                            ? 'bg-purple-500 text-white shadow-sm'
+                            : 'bg-stone-950 text-stone-400 border border-white/5 hover:text-white'
+                        }`}
+                      >
+                        <span>{user === 'User 2' ? '🍕' : '🍿'}</span>
+                        <span>{user}{isCurrentUser ? ' (You)' : ''} ({userCount})</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Category Filters */}
                 {uniqueGenres.length > 1 && (
                   <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-1">
                     <button
@@ -189,11 +243,22 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
                   className="rounded-2xl bg-stone-900/90 border border-white/10 p-4 transition-all hover:border-amber-400/40 shadow-lg space-y-3"
                 >
                   {/* Database Metadata Header */}
-                  <div className="flex items-center justify-between text-[11px] text-stone-400 pb-2 border-b border-white/5">
-                    <span className="flex items-center gap-1 font-mono text-emerald-400">
-                      <CheckCircle className="w-3 h-3 text-emerald-400" />
-                      Verified in {DB_NAME}
-                    </span>
+                  <div className="flex flex-wrap items-center justify-between text-[11px] text-stone-400 pb-2 border-b border-white/5 gap-1.5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="flex items-center gap-1 font-mono text-emerald-400">
+                        <CheckCircle className="w-3 h-3 text-emerald-400" />
+                        {DB_NAME}
+                      </span>
+                      {/* Saved By User Badge */}
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                        (item.savedBy || 'User 1') === currentUser
+                          ? 'bg-purple-500/20 text-purple-300 border-purple-500/40'
+                          : 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                      }`}>
+                        <UserCheck className="w-3 h-3" />
+                        Saved by: <strong className="font-mono">{item.savedBy || 'User 1'}{(item.savedBy || 'User 1') === currentUser ? ' (You)' : ''}</strong>
+                      </span>
+                    </div>
                     <span className="flex items-center gap-1 text-stone-400">
                       <Calendar className="w-3 h-3 text-stone-500" />
                       {new Date(item.savedAt).toLocaleDateString(undefined, {

@@ -110,4 +110,6 @@ export interface SavedPairing {
   restaurants: Restaurant[];
   databaseName?: string;
   stakeTier?: string;
+  savedBy?: string;
+  savedByAvatar?: string;
 }

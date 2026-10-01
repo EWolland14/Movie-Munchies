@@ -178,8 +178,9 @@ export const ResultCard: React.FC<ResultCardProps> = ({
                 </span>
               </div>
               <p className="text-stone-300 text-xs mt-1">
-                Film: <strong className="text-white">{dbConfirmation.movieTitle}</strong> • Category Set: <strong className="text-amber-300">{dbConfirmation.category}</strong> • Runtime Set: <strong className="text-cyan-300">{dbConfirmation.runtime}</strong>
+                Film: <strong className="text-white">{dbConfirmation.movieTitle}</strong> • Category Set: <strong className="text-amber-300">{dbConfirmation.category}</strong> • Runtime Set: <strong className="text-cyan-300">{dbConfirmation.runtime}</strong>{dbConfirmation.savedBy && <> • Saved By: <strong className="text-purple-300">{dbConfirmation.savedBy}</strong></>}
               </p>
+
             </div>
           </div>
           <div className="flex items-center gap-2 self-end sm:self-center font-mono text-[11px] text-stone-400 bg-stone-950/70 px-3 py-1.5 rounded-xl border border-white/10 whitespace-nowrap">

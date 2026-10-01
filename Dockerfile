@@ -14,21 +14,28 @@ COPY . .
 RUN npm run build
 
 # ==========================================
-# Stage 2: Serve Production Assets with Nginx
+# Stage 2: Serve API & Web with Node.js
 # ==========================================
-FROM nginx:alpine
+FROM node:22-alpine
 
-# Default Cloud Run port
+WORKDIR /app
+
 ENV PORT=8080
+ENV NODE_ENV=production
 
-# Copy compiled static assets from builder stage
-COPY --from=builder /app/dist /usr/share/nginx/html
+# Install only production dependencies
+COPY package*.json ./
+RUN npm ci --omit=dev || npm install --omit=dev
 
-# Copy Nginx template. nginx:alpine's built-in entrypoint automatically
-# runs envsubst on files in /etc/nginx/templates/ to generate /etc/nginx/conf.d/
-COPY nginx.conf.template /etc/nginx/templates/default.conf.template
+# Copy compiled static Vite assets from builder stage
+COPY --from=builder /app/dist ./dist
 
-# Cloud Run defaults to 8080
+# Copy backend server script
+COPY server.js ./
+
+# Create data directory for persistent movie-munchies-db
+RUN mkdir -p data
+
 EXPOSE 8080
 
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["node", "server.js"]
