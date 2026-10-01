@@ -10,7 +10,7 @@ import { FilterState, Movie, FoodOption, Restaurant, SavedPairing, MovieGenre, F
 import { MOCK_MOVIES } from './data/mockMovies';
 import { MOCK_FOODS, getThematicTieIn } from './data/mockFoods';
 import { getNearbyRestaurants } from './data/mockRestaurants';
-import { Compass, SlidersHorizontal, ChevronDown, ChevronUp } from 'lucide-react';
+import { SlidersHorizontal, ChevronDown, ChevronUp } from 'lucide-react';
 import {
   savePairingToDatabase,
   getAllPairingsFromDatabase,
@@ -64,6 +64,11 @@ export function App() {
   // Casino Vibe Stakes & Ambience state
   const [stakeTier, setStakeTier] = useState<VibeStakeTier>('casual');
   const [ambienceEnabled, setAmbienceEnabled] = useState<boolean>(false);
+  const [casinoVariant, setCasinoVariant] = useState<'floor' | 'ambience'>('floor');
+
+  const toggleCasinoVariant = () => {
+    setCasinoVariant((prev) => (prev === 'floor' ? 'ambience' : 'floor'));
+  };
 
   // Sound preference state
   const [soundEnabled, setSoundEnabled] = useState<boolean>(() => {
@@ -299,10 +304,10 @@ export function App() {
   return (
     <div className="min-h-screen bg-stone-950 text-slate-100 flex flex-col relative selection:bg-red-600 selection:text-white overflow-x-hidden">
       
-      {/* 1. Photorealistic Vegas Casino Floor Environment (matches reference Image 1) */}
-      <CasinoEnvironment />
+      {/* 1. Real Vegas Casino Background Image (Toggleable between Floor & Lounge) */}
+      <CasinoEnvironment imageVariant={casinoVariant} />
 
-      {/* Navigation Header */}
+      {/* Navigation Header with Liquid-Glass System */}
       <Navbar
         currentUser={currentUser}
         onSelectUser={handleSetUser}
@@ -310,32 +315,55 @@ export function App() {
         onOpenHistory={() => setIsHistoryOpen(true)}
         soundEnabled={soundEnabled}
         onToggleSound={toggleSound}
+        casinoVariant={casinoVariant}
+        onToggleCasinoVariant={toggleCasinoVariant}
       />
 
-
       {/* Main Content Area */}
-      <main className="flex-1 max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-10 py-6 sm:py-10 relative z-10">
+      <main className="flex-1 max-w-[1600px] w-full mx-auto px-4 sm:px-6 lg:px-10 py-6 sm:py-8 relative z-10">
         
-        {/* Full-Width Expansive Hero Section */}
-        <div className="text-center w-full max-w-6xl mx-auto mb-6">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-red-950/90 border border-red-500/50 text-amber-300 text-xs font-mono font-black uppercase tracking-widest mb-4 shadow-[0_0_20px_rgba(239,68,68,0.4)]">
-            <Compass className="w-4 h-4 text-amber-400 animate-spin-slow" />
-            Vegas High Roller Cinema Randomizer &amp; Kitchen Oracle
+        {/* Full-Width Expansive Hero Section with NEURAL Architecture & Liquid-Glass System */}
+        <div className="text-center w-full max-w-5xl mx-auto mb-8 pt-2 sm:pt-4">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full liquid-pill text-amber-300 text-[11px] sm:text-xs font-mono font-bold uppercase tracking-widest mb-4 shadow-[0_0_20px_rgba(245,158,11,0.25)] border border-amber-400/30">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-stone-400">//</span>
+            <span>VEGAS HIGH ROLLER CINEMA &amp; KITCHEN ORACLE</span>
           </div>
-          <h1 className="font-display text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-white tracking-tight leading-[1.05] drop-shadow-[0_5px_20px_rgba(0,0,0,0.9)]">
-            Pull The Lever.{' '}
-            <span className="bg-gradient-to-r from-yellow-200 via-amber-400 to-amber-500 bg-clip-text text-transparent underline decoration-amber-500/30 decoration-wavy">
-              Hit The Jackpot.
-            </span>{' '}
-            Feast Tonight.
+          
+          <h1 className="font-display text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-white tracking-tight leading-[1.05] drop-shadow-[0_8px_30px_rgba(0,0,0,0.95)]">
+            World-Class Film &amp; Feast.{' '}
+            <span className="bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-500 bg-clip-text text-transparent">
+              Zero Indecision.
+            </span>
           </h1>
-          <p className="mt-3.5 text-stone-200 text-base sm:text-lg md:text-xl font-medium max-w-4xl mx-auto drop-shadow-md leading-relaxed">
-            Drag the mechanical arm to spin Cinema Genre, Runtime, and Delivery Feast in high-suspense deceleration—then choose between instant delivery or chef-crafted home recipes!
+          
+          <p className="mt-4 text-stone-200 text-base sm:text-lg md:text-xl font-medium max-w-3xl mx-auto drop-shadow-md leading-relaxed">
+            Drag the mechanical lever to spin Cinema Genre, Runtime, and Delivery Feast in high-suspense deceleration. Cook gourmet recipes at home or order instant local delivery—synced live to <code className="text-amber-400 font-mono text-sm px-1.5 py-0.5 rounded bg-amber-400/10 border border-amber-400/30">movie-munchies-db</code>.
           </p>
+
+          {/* Capabilities Grid (NEURAL Feats Design Structure) */}
+          <div className="mt-7 flex flex-wrap items-center justify-center gap-2.5 sm:gap-3.5 max-w-4xl mx-auto">
+            <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl liquid-pill text-xs font-medium text-stone-200 shadow-sm border border-white/10">
+              <span className="text-amber-400 font-mono font-bold">▸</span>
+              <span>3D Mechanical Slot Randomizer</span>
+            </div>
+            <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl liquid-pill text-xs font-medium text-stone-200 shadow-sm border border-white/10">
+              <span className="text-amber-400 font-mono font-bold">▸</span>
+              <span>Gourmet Cook-at-Home Recipes</span>
+            </div>
+            <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl liquid-pill text-xs font-medium text-stone-200 shadow-sm border border-white/10">
+              <span className="text-amber-400 font-mono font-bold">▸</span>
+              <span>Local Delivery Restaurant Ordering</span>
+            </div>
+            <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl liquid-pill text-xs font-medium text-stone-200 shadow-sm border border-white/10">
+              <span className="text-amber-400 font-mono font-bold">▸</span>
+              <span>Multi-User Watch Together Sync</span>
+            </div>
+          </div>
         </div>
 
         {/* Live Vegas Cinephile Marquee Ticker */}
-        <div className="w-full max-w-6xl mx-auto mb-6 overflow-hidden rounded-2xl bg-stone-950/90 border border-amber-500/30 p-2.5 text-xs font-mono backdrop-blur-xl shadow-lg">
+        <div className="w-full max-w-5xl mx-auto mb-6 overflow-hidden rounded-2xl liquid-glass border border-amber-500/30 p-2.5 text-xs font-mono shadow-xl">
           <div className="flex items-center gap-6 whitespace-nowrap overflow-x-auto no-scrollbar py-0.5 px-3 text-stone-300">
             <span className="inline-flex items-center gap-2 text-amber-400 font-bold flex-shrink-0">
               <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />

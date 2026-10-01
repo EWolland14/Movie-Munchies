@@ -22,8 +22,10 @@ export default {
         }
       },
       fontFamily: {
-        sans: ['Plus Jakarta Sans', 'Inter', 'system-ui', 'sans-serif'],
-        display: ['Cabinet Grotesk', 'Outfit', 'sans-serif'],
+        sans: ['Sora', 'Plus Jakarta Sans', 'Inter', 'system-ui', 'sans-serif'],
+        display: ['Sora', 'Outfit', 'Cabinet Grotesk', 'sans-serif'],
+        serif: ['Instrument Serif', 'Georgia', 'serif'],
+        mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
       },
       boxShadow: {
         'glow-gold': '0 0 25px -5px rgba(245, 158, 11, 0.35)',

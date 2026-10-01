@@ -85,10 +85,10 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
 
       {/* Drawer Panel */}
       <div className="absolute inset-y-0 right-0 max-w-full flex pl-6 sm:pl-10">
-        <div className="w-screen max-w-lg bg-stone-950 border-l border-amber-500/30 shadow-2xl flex flex-col">
+        <div className="w-screen max-w-lg liquid-glass-strong border-l border-white/10 shadow-2xl flex flex-col">
           
           {/* Database Header */}
-          <div className="p-5 sm:p-6 border-b border-white/10 bg-stone-900/90 backdrop-blur-xl">
+          <div className="p-5 sm:p-6 border-b border-white/10 bg-black/40 backdrop-blur-xl">
             <div className="flex items-center justify-between gap-3 mb-2">
               <div className="flex items-center gap-2.5">
                 <div className="p-2 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30">

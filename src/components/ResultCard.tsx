@@ -81,7 +81,7 @@ export const ResultCard: React.FC<ResultCardProps> = ({
   };
 
   return (
-    <section className="w-full glass-panel rounded-3xl p-6 sm:p-8 border-2 border-amber-500/40 shadow-[0_10px_40px_rgba(0,0,0,0.8),0_0_30px_rgba(245,158,11,0.2)] relative">
+    <section className="w-full liquid-glass-strong rounded-3xl p-6 sm:p-8 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.9),0_0_30px_rgba(245,158,11,0.15)] relative">
       
       {/* Top Banner Ribbon */}
       <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-white/10">

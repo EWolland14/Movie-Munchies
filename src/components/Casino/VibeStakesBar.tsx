@@ -23,7 +23,7 @@ export const VibeStakesBar: React.FC<VibeStakesBarProps> = ({
   };
 
   return (
-    <div className="w-full max-w-5xl mx-auto mb-6 px-4 py-3 rounded-2xl bg-stone-900/90 border border-amber-500/40 backdrop-blur-xl shadow-[0_8px_30px_rgba(0,0,0,0.8),0_0_20px_rgba(245,158,11,0.15)] flex flex-wrap items-center justify-center gap-3 text-center">
+    <div className="w-full max-w-5xl mx-auto mb-6 px-4 py-3 rounded-2xl liquid-glass-strong border border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.85)] flex flex-wrap items-center justify-center gap-3 text-center">
       
       {/* Vibe Stakes Label */}
       <span className="text-xs font-mono font-black text-amber-400 uppercase tracking-wider flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-amber-950/60 border border-amber-500/30">
