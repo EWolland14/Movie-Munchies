@@ -113,3 +113,10 @@ export interface SavedPairing {
   savedBy?: string;
   savedByAvatar?: string;
 }
+
+export interface UserProfile {
+  id: string;
+  username: string;
+  emoji: string;
+  createdAt: string;
+}

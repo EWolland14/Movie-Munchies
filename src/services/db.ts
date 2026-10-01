@@ -1,8 +1,17 @@
-import { SavedPairing } from '../types';
+import { SavedPairing, UserProfile } from '../types';
 
 export const DB_NAME = 'movie-munchies-db';
 export const STORE_NAME = 'saved_pairings';
-export const DB_VERSION = 1;
+export const USERS_STORE_NAME = 'users';
+export const DB_VERSION = 2;
+
+const USERS_CACHE_KEY = 'movie_munchies_db_users_v2';
+const BROADCAST_CHANNEL_NAME = 'movie_munchies_db_sync_channel';
+
+// Cross-tab real-time event bus
+export const dbBroadcast = typeof window !== 'undefined' && 'BroadcastChannel' in window
+  ? new BroadcastChannel(BROADCAST_CHANNEL_NAME)
+  : null;
 
 export interface DatabaseWriteConfirmation {
   success: boolean;
@@ -13,6 +22,7 @@ export interface DatabaseWriteConfirmation {
   category: string;
   runtime: string;
   savedBy?: string;
+  savedByAvatar?: string;
 }
 
 export function openDatabase(): Promise<IDBDatabase> {
@@ -34,23 +44,109 @@ export function openDatabase(): Promise<IDBDatabase> {
         store.createIndex('category', 'movie.genres', { unique: false, multiEntry: true });
         store.createIndex('savedBy', 'savedBy', { unique: false });
       }
+      if (!db.objectStoreNames.contains(USERS_STORE_NAME)) {
+        db.createObjectStore(USERS_STORE_NAME, { keyPath: 'id' });
+      }
     };
 
-    request.onsuccess = () => {
-      resolve(request.result);
-    };
-
-    request.onerror = () => {
-      reject(request.error);
-    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
   });
 }
+
+// ==========================================
+// USER ACCOUNTS in movie-munchies-db
+// ==========================================
+
+export async function getAllUsersFromDatabase(): Promise<UserProfile[]> {
+  // 1. Fetch live registered accounts from server with cache-busting
+  try {
+    const res = await fetch(`/api/users?_t=${Date.now()}`, { cache: 'no-store' });
+    if (res.ok) {
+      const users: UserProfile[] = await res.json();
+      if (Array.isArray(users)) {
+        try {
+          localStorage.setItem(USERS_CACHE_KEY, JSON.stringify(users));
+        } catch {
+          // Ignore
+        }
+        return users;
+      }
+    }
+  } catch (err) {
+    console.warn('[movie-munchies-db] Server users fetch failed, reading cache:', err);
+  }
+
+  // 2. Fallback to localStorage cache
+  try {
+    const cached = localStorage.getItem(USERS_CACHE_KEY);
+    return cached ? JSON.parse(cached) : [];
+  } catch {
+    return [];
+  }
+}
+
+export async function createUserInDatabase(username: string, emoji = '🍿'): Promise<UserProfile> {
+  const trimmed = username.trim();
+  if (!trimmed) throw new Error('Username is required');
+
+  // 1. Call server API
+  try {
+    const res = await fetch('/api/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: trimmed, emoji }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.user) {
+        // Update local cache
+        const currentUsers = await getAllUsersFromDatabase();
+        const updated = [...currentUsers.filter(u => u.username.toLowerCase() !== trimmed.toLowerCase()), data.user];
+        try {
+          localStorage.setItem(USERS_CACHE_KEY, JSON.stringify(updated));
+        } catch {
+          // Ignore
+        }
+        dbBroadcast?.postMessage({ type: 'USERS_UPDATED', user: data.user });
+        return data.user;
+      }
+    }
+  } catch (err) {
+    console.warn('[movie-munchies-db] Server user creation failed, creating local offline user:', err);
+  }
+
+  // 2. Offline fallback
+  const fallbackUser: UserProfile = {
+    id: `usr_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+    username: trimmed,
+    emoji,
+    createdAt: new Date().toISOString(),
+  };
+
+  try {
+    const cachedRaw = localStorage.getItem(USERS_CACHE_KEY) || '[]';
+    const cached: UserProfile[] = JSON.parse(cachedRaw);
+    const updated = [...cached.filter(u => u.username.toLowerCase() !== trimmed.toLowerCase()), fallbackUser];
+    localStorage.setItem(USERS_CACHE_KEY, JSON.stringify(updated));
+  } catch {
+    // Ignore
+  }
+
+  dbBroadcast?.postMessage({ type: 'USERS_UPDATED', user: fallbackUser });
+  return fallbackUser;
+}
+
+// ==========================================
+// PAIRINGS in movie-munchies-db
+// ==========================================
 
 export async function savePairingToDatabase(pairing: SavedPairing): Promise<DatabaseWriteConfirmation> {
   const recordWithMeta: SavedPairing = {
     ...pairing,
     databaseName: DB_NAME,
-    savedBy: pairing.savedBy || 'User 1',
+    savedBy: pairing.savedBy || 'Guest',
+    savedByAvatar: pairing.savedByAvatar || '🍿',
   };
 
   // 1. Primary write to shared movie-munchies-db REST API (accessible to both users)
@@ -92,6 +188,9 @@ export async function savePairingToDatabase(pairing: SavedPairing): Promise<Data
     console.error('Failed to sync to local storage backup:', e);
   }
 
+  // Notify other tabs via broadcast
+  dbBroadcast?.postMessage({ type: 'PAIRINGS_UPDATED', pairing: recordWithMeta });
+
   if (serverConfirmation) {
     return serverConfirmation;
   }
@@ -108,21 +207,29 @@ export async function savePairingToDatabase(pairing: SavedPairing): Promise<Data
     category: categoryStr,
     runtime: runtimeStr,
     savedBy: recordWithMeta.savedBy,
+    savedByAvatar: recordWithMeta.savedByAvatar,
   };
 }
 
-export async function getAllPairingsFromDatabase(): Promise<SavedPairing[]> {
-  // 1. Fetch live shared pairings from movie-munchies-db server
+export async function getAllPairingsFromDatabase(userFilter?: string): Promise<SavedPairing[]> {
+  // 1. Fetch live shared pairings from movie-munchies-db server with strict anti-caching
   try {
-    const res = await fetch('/api/pairings');
+    const query = new URLSearchParams();
+    query.set('_t', Date.now().toString());
+    if (userFilter && userFilter !== 'all') {
+      query.set('user', userFilter);
+    }
+    const res = await fetch(`/api/pairings?${query.toString()}`, { cache: 'no-store' });
     if (res.ok) {
       const liveRecords: SavedPairing[] = await res.json();
       if (Array.isArray(liveRecords)) {
-        // Cache to localStorage
-        try {
-          localStorage.setItem(DB_NAME, JSON.stringify(liveRecords));
-        } catch {
-          // Ignore
+        // Cache to localStorage if fetching all
+        if (!userFilter || userFilter === 'all') {
+          try {
+            localStorage.setItem(DB_NAME, JSON.stringify(liveRecords));
+          } catch {
+            // Ignore
+          }
         }
         return liveRecords.sort((a, b) => new Date(b.savedAt).getTime() - new Date(a.savedAt).getTime());
       }
@@ -139,7 +246,10 @@ export async function getAllPairingsFromDatabase(): Promise<SavedPairing[]> {
       const store = tx.objectStore(STORE_NAME);
       const req = store.getAll();
       req.onsuccess = () => {
-        const results = (req.result as SavedPairing[]) || [];
+        let results = (req.result as SavedPairing[]) || [];
+        if (userFilter && userFilter !== 'all') {
+          results = results.filter((p) => p.savedBy?.toLowerCase() === userFilter.toLowerCase());
+        }
         results.sort((a, b) => new Date(b.savedAt).getTime() - new Date(a.savedAt).getTime());
         resolve(results);
       };
@@ -149,7 +259,12 @@ export async function getAllPairingsFromDatabase(): Promise<SavedPairing[]> {
     // 3. Fallback to localStorage
     try {
       const stored = localStorage.getItem(DB_NAME);
-      return stored ? JSON.parse(stored) : [];
+      if (!stored) return [];
+      let list: SavedPairing[] = JSON.parse(stored);
+      if (userFilter && userFilter !== 'all') {
+        list = list.filter((p) => p.savedBy?.toLowerCase() === userFilter.toLowerCase());
+      }
+      return list;
     } catch {
       return [];
     }
@@ -189,38 +304,54 @@ export async function deletePairingFromDatabase(id: string): Promise<boolean> {
     // Ignore
   }
 
+  dbBroadcast?.postMessage({ type: 'PAIRINGS_UPDATED', deletedId: id });
   return true;
 }
 
-export async function clearAllPairingsFromDatabase(): Promise<boolean> {
+export async function clearAllPairingsFromDatabase(userFilter?: string): Promise<boolean> {
   // 1. Clear on server
   try {
-    await fetch('/api/pairings', { method: 'DELETE' });
+    const url = userFilter && userFilter !== 'all'
+      ? `/api/pairings?user=${encodeURIComponent(userFilter)}`
+      : '/api/pairings';
+    await fetch(url, { method: 'DELETE' });
   } catch (err) {
     console.warn('[movie-munchies-db] Server clear failed:', err);
   }
 
-  // 2. Clear in IndexedDB
-  try {
-    const db = await openDatabase();
-    await new Promise<void>((resolve, reject) => {
-      const tx = db.transaction(STORE_NAME, 'readwrite');
-      const store = tx.objectStore(STORE_NAME);
-      const req = store.clear();
-      req.onsuccess = () => resolve();
-      req.onerror = () => reject(req.error);
-    });
-  } catch {
-    // Ignore
+  // 2. Clear in IndexedDB / localStorage
+  if (!userFilter || userFilter === 'all') {
+    try {
+      const db = await openDatabase();
+      await new Promise<void>((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        const req = store.clear();
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(req.error);
+      });
+    } catch {
+      // Ignore
+    }
+
+    try {
+      localStorage.removeItem(DB_NAME);
+    } catch {
+      // Ignore
+    }
+  } else {
+    try {
+      const stored = localStorage.getItem(DB_NAME);
+      if (stored) {
+        const list: SavedPairing[] = JSON.parse(stored);
+        localStorage.setItem(DB_NAME, JSON.stringify(list.filter((p) => p.savedBy?.toLowerCase() !== userFilter.toLowerCase())));
+      }
+    } catch {
+      // Ignore
+    }
   }
 
-  // 3. Clear in localStorage
-  try {
-    localStorage.removeItem(DB_NAME);
-  } catch {
-    // Ignore
-  }
-
+  dbBroadcast?.postMessage({ type: 'PAIRINGS_UPDATED', cleared: true });
   return true;
 }
 

@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
-import { Bookmark, Volume2, VolumeX, Users, Check, Edit2, Image } from 'lucide-react';
+import { Bookmark, Volume2, VolumeX, Check, UserPlus, Image, Database } from 'lucide-react';
+import { UserProfile } from '../types';
 
 interface NavbarProps {
-  currentUser: string;
-  onSelectUser: (user: string) => void;
+  currentUser: UserProfile | null;
+  allUsers: UserProfile[];
+  onSelectUser: (user: UserProfile) => void;
+  onOpenCreateAccount: () => void;
   savedCount: number;
   onOpenHistory: () => void;
   soundEnabled: boolean;
@@ -12,14 +15,11 @@ interface NavbarProps {
   onToggleCasinoVariant: () => void;
 }
 
-const PRESET_USERS = [
-  { name: 'User 1', label: 'User 1 (Host)', emoji: '🍿', badgeColor: 'bg-purple-500/20 text-purple-300 border-purple-500/40' },
-  { name: 'User 2', label: 'User 2 (Partner)', emoji: '🍕', badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/40' },
-];
-
 export const Navbar: React.FC<NavbarProps> = ({
   currentUser,
+  allUsers,
   onSelectUser,
+  onOpenCreateAccount,
   savedCount,
   onOpenHistory,
   soundEnabled,
@@ -28,20 +28,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   onToggleCasinoVariant,
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isEditingCustom, setIsEditingCustom] = useState(false);
-  const [customName, setCustomName] = useState('');
-
-  const activePreset = PRESET_USERS.find(u => u.name === currentUser);
-  const userEmoji = activePreset?.emoji || '👤';
-
-  const handleCustomSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (customName.trim()) {
-      onSelectUser(customName.trim());
-      setIsEditingCustom(false);
-      setIsDropdownOpen(false);
-    }
-  };
 
   return (
     <header className="sticky top-0 z-40 w-full px-4 sm:px-6 lg:px-8 pt-3 pb-2 select-none">
@@ -103,76 +89,97 @@ export const Navbar: React.FC<NavbarProps> = ({
             )}
           </button>
 
-          {/* Multi-User Identity Selector for movie-munchies-db */}
+          {/* USER TAB: Only shows users who have created an account */}
           <div className="relative">
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-xl liquid-pill text-xs font-semibold text-stone-200 transition-all hover:text-white"
-              title="Switch user profile for Watch Together database"
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                currentUser
+                  ? 'liquid-pill text-stone-200 hover:text-white'
+                  : 'bg-amber-400/20 border border-amber-400/50 text-amber-300 hover:bg-amber-400/30 shadow-[0_0_15px_rgba(245,158,11,0.25)]'
+              }`}
+              title="User account switcher for movie-munchies-db"
             >
-              <span className="text-sm select-none">{userEmoji}</span>
-              <span className="hidden md:inline font-mono font-bold">{currentUser}</span>
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              {currentUser ? (
+                <>
+                  <span className="text-sm select-none">{currentUser.emoji}</span>
+                  <span className="font-mono font-bold">{currentUser.username}</span>
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                </>
+              ) : (
+                <>
+                  <UserPlus className="w-3.5 h-3.5 text-amber-400" />
+                  <span className="font-mono font-bold">Create Account</span>
+                  <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+                </>
+              )}
             </button>
 
             {isDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-64 rounded-2xl liquid-glass-strong border border-amber-500/40 shadow-2xl p-3 z-50 animate-fadeIn">
-                <div className="flex items-center gap-1.5 text-[11px] font-mono font-bold text-amber-400 uppercase tracking-wider px-2 pb-2 border-b border-white/10 mb-2">
-                  <Users className="w-3.5 h-3.5" />
-                  <span>Watch Together As:</span>
+              <div className="absolute right-0 mt-2 w-72 rounded-2xl liquid-glass-strong border border-amber-500/40 shadow-2xl p-3 z-50 animate-fadeIn">
+                <div className="flex items-center justify-between px-2 pb-2.5 border-b border-white/10 mb-2.5">
+                  <div className="flex items-center gap-1.5 text-[11px] font-mono font-bold text-amber-400 uppercase tracking-wider">
+                    <Database className="w-3.5 h-3.5" />
+                    <span>movie-munchies-db Accounts</span>
+                  </div>
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300">
+                    {allUsers.length} Users
+                  </span>
                 </div>
 
-                <div className="space-y-1.5">
-                  {PRESET_USERS.map((user) => (
-                    <button
-                      key={user.name}
-                      onClick={() => {
-                        onSelectUser(user.name);
-                        setIsDropdownOpen(false);
-                      }}
-                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all ${
-                        currentUser === user.name
-                          ? 'bg-amber-400/20 text-white border border-amber-400/40'
-                          : 'text-stone-300 hover:bg-white/5 hover:text-white'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="text-base">{user.emoji}</span>
-                        <span>{user.label}</span>
-                      </div>
-                      {currentUser === user.name && <Check className="w-3.5 h-3.5 text-amber-400" />}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Custom Name Option */}
-                <div className="mt-2 pt-2 border-t border-white/10">
-                  {isEditingCustom ? (
-                    <form onSubmit={handleCustomSubmit} className="flex gap-1.5">
-                      <input
-                        type="text"
-                        placeholder="Your name..."
-                        value={customName}
-                        onChange={(e) => setCustomName(e.target.value)}
-                        className="flex-1 bg-black/80 border border-white/20 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:border-amber-400"
-                        autoFocus
-                      />
+                {/* Only users who have created an account appear here! */}
+                {allUsers.length === 0 ? (
+                  <div className="py-4 px-2 text-center text-xs text-stone-400">
+                    <p className="mb-2">No accounts created in <strong className="text-amber-300">movie-munchies-db</strong> yet.</p>
+                    <p className="text-[11px] text-stone-500">Create the first account below to get started!</p>
+                  </div>
+                ) : (
+                  <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
+                    {allUsers.map((user) => (
                       <button
-                        type="submit"
-                        className="px-2.5 py-1 rounded-lg bg-amber-400 text-stone-950 text-xs font-bold"
+                        key={user.id}
+                        onClick={() => {
+                          onSelectUser(user);
+                          setIsDropdownOpen(false);
+                        }}
+                        className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+                          currentUser?.username.toLowerCase() === user.username.toLowerCase()
+                            ? 'bg-amber-400/20 text-white border border-amber-400/50 shadow-sm'
+                            : 'text-stone-300 hover:bg-white/5 hover:text-white'
+                        }`}
                       >
-                        Set
+                        <div className="flex items-center gap-2.5">
+                          <span className="text-base">{user.emoji}</span>
+                          <div className="text-left">
+                            <span className="font-bold block text-white">{user.username}</span>
+                            <span className="text-[10px] text-stone-400 font-mono">
+                              Joined {new Date(user.createdAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </div>
+                        {currentUser?.username.toLowerCase() === user.username.toLowerCase() && (
+                          <div className="flex items-center gap-1 text-[11px] text-amber-300 font-mono">
+                            <Check className="w-3.5 h-3.5 text-amber-400" />
+                            <span>Active</span>
+                          </div>
+                        )}
                       </button>
-                    </form>
-                  ) : (
-                    <button
-                      onClick={() => setIsEditingCustom(true)}
-                      className="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] text-stone-400 hover:text-white hover:bg-white/5 transition-colors"
-                    >
-                      <Edit2 className="w-3 h-3" />
-                      <span>Custom profile name...</span>
-                    </button>
-                  )}
+                    ))}
+                  </div>
+                )}
+
+                {/* Create Account Trigger Button */}
+                <div className="mt-3 pt-2.5 border-t border-white/10">
+                  <button
+                    onClick={() => {
+                      setIsDropdownOpen(false);
+                      onOpenCreateAccount();
+                    }}
+                    className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-gradient-to-r from-amber-500/20 to-yellow-500/20 border border-amber-400/40 hover:bg-amber-500/30 text-amber-300 font-semibold text-xs transition-all"
+                  >
+                    <UserPlus className="w-3.5 h-3.5" />
+                    <span>+ Create New Account</span>
+                  </button>
                 </div>
               </div>
             )}
@@ -196,4 +203,5 @@ export const Navbar: React.FC<NavbarProps> = ({
     </header>
   );
 };
+
 

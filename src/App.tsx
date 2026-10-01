@@ -6,23 +6,27 @@ import { VibeStakesBar, VibeStakeTier } from './components/Casino/VibeStakesBar'
 import { CasinoSlotMachine } from './components/SlotMachine/CasinoSlotMachine';
 import { ResultCard } from './components/ResultCard';
 import { HistoryDrawer } from './components/HistoryDrawer';
-import { FilterState, Movie, FoodOption, Restaurant, SavedPairing, MovieGenre, FoodGenre, RuntimeCategory } from './types';
+import { FilterState, Movie, FoodOption, Restaurant, SavedPairing, MovieGenre, FoodGenre, RuntimeCategory, UserProfile } from './types';
 import { MOCK_MOVIES } from './data/mockMovies';
 import { MOCK_FOODS, getThematicTieIn } from './data/mockFoods';
 import { getNearbyRestaurants } from './data/mockRestaurants';
 import { SlidersHorizontal, ChevronDown, ChevronUp } from 'lucide-react';
+import { CreateAccountModal } from './components/CreateAccountModal';
 import {
   savePairingToDatabase,
   getAllPairingsFromDatabase,
   deletePairingFromDatabase,
   clearAllPairingsFromDatabase,
+  getAllUsersFromDatabase,
+  createUserInDatabase,
+  dbBroadcast,
   DatabaseWriteConfirmation,
   DB_NAME
 } from './services/db';
 
 const STORAGE_KEY_SAVED = 'movie_munchies_saved_pairings_v1';
 const STORAGE_KEY_SOUND = 'movie_munchies_sound_enabled';
-const STORAGE_KEY_USER = 'movie_munchies_current_user';
+const STORAGE_KEY_USER_PROFILE = 'movie_munchies_active_user_v2';
 
 const INITIAL_FILTERS: FilterState = {
   runtime: 'any',
@@ -43,22 +47,36 @@ export function App() {
   const [showAdvancedFilters, setShowAdvancedFilters] = useState<boolean>(false);
   const [dbConfirmation, setDbConfirmation] = useState<DatabaseWriteConfirmation | null>(null);
 
-  // Multi-user profile state (User 1 vs User 2 vs custom)
-  const [currentUser, setCurrentUser] = useState<string>(() => {
+  // Accounts state in movie-munchies-db
+  const [allUsers, setAllUsers] = useState<UserProfile[]>([]);
+  const [isCreateAccountOpen, setIsCreateAccountOpen] = useState<boolean>(false);
+
+  // Active logged-in user profile
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => {
     try {
-      return localStorage.getItem(STORAGE_KEY_USER) || 'User 1';
+      const saved = localStorage.getItem(STORAGE_KEY_USER_PROFILE);
+      return saved ? JSON.parse(saved) : null;
     } catch {
-      return 'User 1';
+      return null;
     }
   });
 
-  const handleSetUser = (user: string) => {
+  const handleSetUser = (user: UserProfile) => {
     setCurrentUser(user);
     try {
-      localStorage.setItem(STORAGE_KEY_USER, user);
+      localStorage.setItem(STORAGE_KEY_USER_PROFILE, JSON.stringify(user));
     } catch {
       // Ignore
     }
+  };
+
+  const handleCreateAccount = async (username: string, emoji: string) => {
+    const newUser = await createUserInDatabase(username, emoji);
+    setAllUsers((prev) => [
+      ...prev.filter((u) => u.username.toLowerCase() !== newUser.username.toLowerCase()),
+      newUser,
+    ]);
+    handleSetUser(newUser);
   };
 
   // Casino Vibe Stakes & Ambience state
@@ -199,6 +217,12 @@ export function App() {
   const handleLockIn = async () => {
     if (!currentMovie || !currentFood) return;
 
+    // If visitor hasn't created/selected an account yet, prompt account creation first!
+    if (!currentUser) {
+      setIsCreateAccountOpen(true);
+      return;
+    }
+
     const newSaved: SavedPairing = {
       id: `${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
       savedAt: new Date().toISOString(),
@@ -209,7 +233,8 @@ export function App() {
       restaurants,
       databaseName: DB_NAME,
       stakeTier,
-      savedBy: currentUser,
+      savedBy: currentUser.username,
+      savedByAvatar: currentUser.emoji,
     };
 
     // Transactional write to movie-munchies-db
@@ -235,7 +260,8 @@ export function App() {
       movieTitle: pairing.movie.title,
       category: pairing.movie.genres.join(', '),
       runtime: `${pairing.movie.runtime}m (${pairing.movie.runtimeCategory})`,
-      savedBy: pairing.savedBy || 'User 1'
+      savedBy: pairing.savedBy || 'Guest',
+      savedByAvatar: pairing.savedByAvatar || '🍿'
     });
   };
 
@@ -244,10 +270,21 @@ export function App() {
     setSavedPairings((prev) => prev.filter((p) => p.id !== id));
   };
 
-  const handleClearAllSaved = async () => {
-    if (window.confirm(`Purge all records from database ${DB_NAME}?`)) {
-      await clearAllPairingsFromDatabase();
-      setSavedPairings([]);
+  const handleClearSaved = async (userFilter?: string) => {
+    const isSpecific = userFilter && userFilter !== 'all';
+    const msg = isSpecific
+      ? `Purge ${userFilter}'s saved records from database ${DB_NAME}?`
+      : `Purge all records from database ${DB_NAME}?`;
+
+    if (window.confirm(msg)) {
+      await clearAllPairingsFromDatabase(userFilter);
+      if (isSpecific) {
+        setSavedPairings((prev) =>
+          prev.filter((p) => (p.savedBy || '').toLowerCase() !== userFilter.toLowerCase())
+        );
+      } else {
+        setSavedPairings([]);
+      }
       setDbConfirmation(null);
     }
   };
@@ -256,27 +293,66 @@ export function App() {
     setFilters(INITIAL_FILTERS);
   };
 
-  // Live auto-sync with movie-munchies-db so both User 1 and User 2 see each other's saved movie nights in real-time
+  // Live auto-sync with movie-munchies-db so all users see each other's accounts and saved nights in real-time
   useEffect(() => {
     let isMounted = true;
 
-    const syncRecords = async () => {
+    const syncAll = async () => {
       try {
-        const records = await getAllPairingsFromDatabase();
-        if (isMounted && records) {
-          setSavedPairings(records);
+        const [records, users] = await Promise.all([
+          getAllPairingsFromDatabase(),
+          getAllUsersFromDatabase(),
+        ]);
+
+        if (isMounted) {
+          if (records) {
+            setSavedPairings(records);
+          }
+          if (users) {
+            setAllUsers(users);
+            // If currentUser is null or not in users, check if a stored username matches
+            if (users.length > 0) {
+              setCurrentUser((curr) => {
+                if (curr) {
+                  const updatedCurrent = users.find(
+                    (u) => u.username.toLowerCase() === curr.username.toLowerCase()
+                  );
+                  return updatedCurrent || curr;
+                }
+                try {
+                  const savedStr = localStorage.getItem(STORAGE_KEY_USER_PROFILE);
+                  if (savedStr) {
+                    const parsed = JSON.parse(savedStr);
+                    const matched = users.find(
+                      (u) => u.username.toLowerCase() === parsed.username?.toLowerCase()
+                    );
+                    if (matched) return matched;
+                  }
+                } catch {
+                  // Ignore
+                }
+                return null;
+              });
+            }
+          }
         }
       } catch (e) {
         console.warn('Could not sync movie-munchies-db:', e);
       }
     };
 
-    syncRecords();
-    const intervalId = setInterval(syncRecords, 4000);
+    syncAll();
+    const intervalId = setInterval(syncAll, 3000);
+
+    const onBroadcast = () => {
+      syncAll();
+    };
+    dbBroadcast?.addEventListener('message', onBroadcast);
 
     return () => {
       isMounted = false;
       clearInterval(intervalId);
+      dbBroadcast?.removeEventListener('message', onBroadcast);
     };
   }, []);
 
@@ -310,7 +386,9 @@ export function App() {
       {/* Navigation Header with Liquid-Glass System */}
       <Navbar
         currentUser={currentUser}
+        allUsers={allUsers}
         onSelectUser={handleSetUser}
+        onOpenCreateAccount={() => setIsCreateAccountOpen(true)}
         savedCount={savedPairings.length}
         onOpenHistory={() => setIsHistoryOpen(true)}
         soundEnabled={soundEnabled}
@@ -470,9 +548,18 @@ export function App() {
         onClose={() => setIsHistoryOpen(false)}
         savedPairings={savedPairings}
         currentUser={currentUser}
+        allUsers={allUsers}
         onSelectPairing={handleSelectFromHistory}
         onDeletePairing={handleDeleteSaved}
-        onClearAll={handleClearAllSaved}
+        onClearAll={handleClearSaved}
+        onOpenCreateAccount={() => setIsCreateAccountOpen(true)}
+      />
+
+      {/* Create Account Modal */}
+      <CreateAccountModal
+        isOpen={isCreateAccountOpen}
+        onClose={() => setIsCreateAccountOpen(false)}
+        onCreateUser={handleCreateAccount}
       />
 
     </div>
